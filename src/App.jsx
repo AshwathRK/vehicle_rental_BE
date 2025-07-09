@@ -1,10 +1,15 @@
-import VideoScroll from './VideoScroll';
+import Category from './components/Home/Category';
+import HeroSection from './components/Home/HeroSection';
+import Nav from './components/Home/Nav';
+import Populer from './components/Home/Populer';
 
 export default function App() {
   return (
     <div>
-      <VideoScroll />
-      {/* Other sections of your site */}
+      <Nav></Nav>
+      <HeroSection />
+      <Category/>
+      <Populer/>
     </div>
   );
 }
