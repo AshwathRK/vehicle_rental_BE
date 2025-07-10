@@ -209,3 +209,13 @@ body {
   opacity: 0;
   transform: translateY(100px);
 }
+
+/* suggetion page */
+.headding-topreview{
+  border-color: var(--MID);
+}
+
+.headding-topbooking{
+  border-color: var(--PRIMERY_COLOR);
+}
+
