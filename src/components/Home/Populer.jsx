@@ -102,7 +102,7 @@ export default function Populer() {
 
     // === Main UI Rendering ===
     return (
-        <div className="h-screen w-full flex flex-col lg:flex-row gap-2">
+        <div className="w-full flex flex-col lg:flex-row gap-2">
             {/* Sidebar or filter area (Cost Information) */}
             <div className="w-full lg:w-2/8 color">
                 <section className='h-auto lg:h-1/2 lg:mb-0'>
@@ -145,11 +145,11 @@ export default function Populer() {
             </div>
 
             {/* Main content area */}
-            <div className="w-full lg:w-6/8 flex flex-col gap-2">
+            <div className="w-full lg:w-6/8 py-4 flex flex-col gap-2">
                 {/* === Highest Rated Vehicles Section === */}
                 <div className="top-review w-full h-1/2 rounded">
                     <div className="headding-topreview h-2/10 w-full flex items-center">
-                        <h2 className="poppins-extrabold px-2 mid">Highest Rated Vehicles</h2>
+                        <h2 className="poppins-extrabold px-2 py-3 mid">Highest Rated Vehicles</h2>
                     </div>
 
                     <div className="flex items-center h-8/10 overflow-x-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 gap-1 px-1">
@@ -225,7 +225,7 @@ export default function Populer() {
                 {/* === Top Booked Vehicles Section === */}
                 <div className="high-booking w-full h-1/2 rounded">
                     <div className="headding-topbooking h-2/10 w-full flex items-center">
-                        <h2 className="poppins-extrabold px-2 primary">Top Picks by Our Renters</h2>
+                        <h2 className="poppins-extrabold px-2 py-3  primary">Top Picks by Our Renters</h2>
                     </div>
 
                     <div className="flex items-center h-8/10 overflow-x-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 gap-1 px-1">
