@@ -75,7 +75,7 @@ export default function Signup() {
     };
 
     return (
-        <div className="SignupPage flex h-[calc(100vh-78.4px)] justify-center items-center bg-lower p-4 md:p-8">
+        <div className="SignupPage flex h-[calc(99.8vh-78.4px)] justify-center items-center bg-lower p-4 md:p-8">
             <div className="signup-container flex justify-center bg-white shadow-lg overflow-hidden w-full rounded max-w-md md:max-w-lg lg:max-w-xl">
                 <div className="form-area flex justify-center items-center p-4 md:p-8">
                     <div className="w-full space-y-4 md:space-y-6">

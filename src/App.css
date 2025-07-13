@@ -184,6 +184,13 @@ body, html, h1, h2, h3, h4, h5, h6{
 }
 
 
+.ibm-plex-sans {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: bold;
+}
+
 
 
 body {
@@ -222,5 +229,20 @@ body {
 .headding-topbooking{
   border-color: var(--PRIMERY_COLOR);
 }
+
+
+input.custom-checkbox {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ccc;
+  background-color: var(--MID);
+  cursor: pointer;
+}
+
+input.custom-checkbox:checked {
+  background-color: var(--DARK-MID); /* change to desired checked color */
+}
+
 
 

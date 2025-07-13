@@ -18,6 +18,7 @@ export default function LogIn() {
     };
 
     const handleSubmit = async (event) => {
+        // debugger
         event.preventDefault();
         try {
             const response = await axios.post(
@@ -29,7 +30,7 @@ export default function LogIn() {
             localStorage.setItem('isAuthenticated', 'true');
             // dispatch(addUserDetails(response.data.user));
             toast.success("Login successful!");
-            navigate('/user');
+            navigate('/lineup');
         } catch (error) {
             if (error.response) {
                 toast.error(error.response.data.message || "Login failed");
