@@ -18,7 +18,7 @@ export default function LogIn() {
     };
 
     const handleSubmit = async (event) => {
-        // debugger
+        debugger
         event.preventDefault();
         try {
             const response = await axios.post(
@@ -28,6 +28,10 @@ export default function LogIn() {
             );
 
             localStorage.setItem('isAuthenticated', 'true');
+            sessionStorage.setItem('accessToken', response.data.accessToken);
+            sessionStorage.setItem('refreshToken', response.data.refreshToken);
+            sessionStorage.setItem('deviceId', response.data.deviceId);
+            // sessionStorage.setItem('user', JSON.stringify(response.data.user));
             // dispatch(addUserDetails(response.data.user));
             toast.success("Login successful!");
             navigate('/lineup');

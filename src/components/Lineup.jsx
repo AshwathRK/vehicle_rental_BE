@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import CryptoJS from 'crypto-js';
+
+// MUI Components
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -8,12 +11,38 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
+import { useLocation } from 'react-router-dom';
 
+// --- ENV Config ---
 const serverUrl = import.meta.env.VITE_SERVER_URL;
+const secretKey = import.meta.env.VITE_SECRET_KEY;
 
 export default function Lineup() {
+    // --- State Management ---
     const [categories, setCategories] = useState([]);
-    const [manageCost, setManageCost] = React.useState({ maxPriceDay: 400 });
+    const [manageCost, setManageCost] = useState({ maxPriceDay: 400 }); // fetched price range
+    const [value1, setValue1] = useState([1000, 3000]); // slider values
+    const location = useLocation();
+    const [categoryId, setCategoryId] = useState(null);
+
+    useEffect(() => {
+        const query = new URLSearchParams(location.search);
+        const token = query.get('token');
+
+        if (token) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(token, secretKey);
+                const decryptedId = bytes.toString(CryptoJS.enc.Utf8);
+                setCategoryId(decryptedId);
+            } catch (e) {
+                console.error('Invalid token', e);
+            }
+        }
+    }, [location.search]);
+
+    // console.log(categoryId);
+
+    // All filter checkbox states
     const [checked, setChecked] = useState({
         delivery: false,
         manual: false,
@@ -29,26 +58,67 @@ export default function Lineup() {
         threeEightRated: false,
         threeFiveRated: false,
         allRated: false,
-        categories: {} // <- dynamic categories will go here
+        categories: {} // <- dynamic categories
     });
+
+    useEffect(() => {
+        if (!categoryId || categories.length === 0) return;
+
+        const matchedCategory = categories.find(cat => cat._id === categoryId);
+        if (matchedCategory) {
+            setChecked((prev) => ({
+                ...prev,
+                categories: {
+                    ...prev.categories,
+                    [matchedCategory.category]: true
+                }
+            }));
+        }
+    }, [categoryId, categories]);
+
+
+
+    // Responsive filter visibility
     const [isFiltersOpen, setIsFiltersOpen] = useState(window.innerWidth >= 1024);
 
+    // --- Handlers ---
     const handleToggleFilters = () => {
         setIsFiltersOpen(!isFiltersOpen);
     };
 
-    useEffect(() => {
-        const handleResize = () => {
-            setIsFiltersOpen(window.innerWidth >= 1024);
-        };
+    const handleCheck = (event) => {
+        const { name, checked: isChecked, dataset } = event.target;
 
-        window.addEventListener('resize', handleResize);
+        if (dataset.type === "category") {
+            // --- Dynamic Category Filter ---
+            setChecked((prev) => ({
+                ...prev,
+                categories: {
+                    ...prev.categories,
+                    [name]: isChecked
+                }
+            }));
+        } else {
+            // --- Static Filter ---
+            setChecked((prev) => ({
+                ...prev,
+                [name]: isChecked
+            }));
+        }
+    };
 
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []);
+    const handleChange1 = (_event, newValue, activeThumb) => {
+        // --- Price Range Slider Handler ---
+        if (!Array.isArray(newValue)) return;
 
+        if (activeThumb === 0) {
+            setValue1([Math.min(newValue[0], value1[1] - 10), value1[1]]);
+        } else {
+            setValue1([value1[0], Math.max(newValue[1], value1[0] + 10)]);
+        }
+    };
+
+    // --- Effect: Fetch categories ---
     useEffect(() => {
         const getCategories = async () => {
             try {
@@ -61,45 +131,7 @@ export default function Lineup() {
         getCategories();
     }, []);
 
-    console.log(manageCost)
-
-    const [value1, setValue1] = React.useState([1000, 3000]);
-
-    const handleCheck = (event) => {
-        const { name, checked: isChecked, dataset } = event.target;
-
-        // For dynamic category checkboxes
-        if (dataset.type === "category") {
-            setChecked((prev) => ({
-                ...prev,
-                categories: {
-                    ...prev.categories,
-                    [name]: isChecked
-                }
-            }));
-        } else {
-            // For static checkboxes
-            setChecked((prev) => ({
-                ...prev,
-                [name]: isChecked
-            }));
-        }
-    };
-
-
-    const handleChange1 = (_event, newValue, activeThumb) => {
-        if (!Array.isArray(newValue)) return;
-
-        if (activeThumb === 0) {
-            setValue1([Math.min(newValue[0], value1[1] - 10), value1[1]]);
-        } else {
-            setValue1([value1[0], Math.max(newValue[1], value1[0] + 10)]);
-        }
-    };
-
-    // console.log(value1)
-    // console.log(checked)
-
+    // --- Effect: Fetch cost range ---
     useEffect(() => {
         const fetchCost = async () => {
             try {
@@ -112,22 +144,33 @@ export default function Lineup() {
         fetchCost();
     }, []);
 
+    // --- Effect: Responsive filter toggle ---
+    useEffect(() => {
+        const handleResize = () => {
+            setIsFiltersOpen(window.innerWidth >= 1024);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // --- UI ---
     return (
         <div className="h-[calc(99.8vh-78.4px)] bg-lower flex flex-col lg:flex-row">
-            {/* Left side filters */}
-            <div
-                className={`${isFiltersOpen ? 'lg:w-1/5 w-full' : 'w-0 lg:w-0'
-                    } bg-white lg:h-full h-auto border-r-2 lg:border-r-2 border-gray-200 accordion !bg-lower overflow-hidden transition-all duration-300`}
-            >
+            {/* --- Left Sidebar: Filters --- */}
+            <div className={`${isFiltersOpen ? 'lg:w-1/5 w-full' : 'w-0 lg:w-0'} bg-white lg:h-full h-auto border-r-2 lg:border-r-2 border-gray-200 accordion !bg-lower overflow-hidden transition-all duration-300`}>
                 <div className="w-full pl-5">
                     <div className="w-full h-20 flex items-end">
                         <h5 className="poppins-semibold">Filters</h5>
                     </div>
                 </div>
+
+                {/* --- Filters Scrollable List --- */}
                 <div className='overflow-y-auto h-[calc(100vh-178.4px)] scrollbar-hide'>
-                    {/* Car types */}
+
+                    {/* --- Car Types --- */}
                     <Accordion defaultExpanded>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />} className="h-15">
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                             <Typography component="span">
                                 <p className="font-bold m-0 text-md poppins-semibold">Car Type</p>
                             </Typography>
@@ -151,7 +194,7 @@ export default function Lineup() {
                         </AccordionDetails>
                     </Accordion>
 
-                    {/* Price Range */}
+                    {/* --- Price Range --- */}
                     <Accordion defaultExpanded>
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                             <Typography component="span">
@@ -159,7 +202,7 @@ export default function Lineup() {
                             </Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                            <Box sx={{ width: "100%" }}>
+                            <Box sx={{ width: "100%" }} className='px-3'>
                                 <Slider
                                     getAriaLabel={() => 'Minimum distance'}
                                     value={value1}
@@ -175,98 +218,56 @@ export default function Lineup() {
                         </AccordionDetails>
                     </Accordion>
 
-                    {/* Transmission */}
+                    {/* --- Transmission --- */}
                     <Accordion defaultExpanded>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />} className="h-15">
-                            <Typography component="span">
-                                <p className="font-bold m-0 text-md poppins-semibold">Transmission</p>
-                            </Typography>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography><p className="font-bold m-0 text-md poppins-semibold">Transmission</p></Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <div className="flex flex-col gap-2">
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="manual"
-                                        checked={checked.manual}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    Manual
-                                </label>
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="automatic"
-                                        checked={checked.automatic}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    Automatic
-                                </label>
+                                {["manual", "automatic"].map((type) => (
+                                    <label key={type} className="flex items-center text-sm">
+                                        <input
+                                            type="checkbox"
+                                            name={type}
+                                            checked={checked[type]}
+                                            onChange={handleCheck}
+                                            className="mx-2 w-4 h-4 accent-mid"
+                                        />
+                                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                                    </label>
+                                ))}
                             </div>
                         </AccordionDetails>
                     </Accordion>
 
-                    {/* Fuel Type */}
+                    {/* --- Fuel Type --- */}
                     <Accordion defaultExpanded>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />} className="h-15">
-                            <Typography component="span">
-                                <p className="font-bold m-0 text-md poppins-semibold">Fuel Type</p>
-                            </Typography>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography><p className="font-bold m-0 text-md poppins-semibold">Fuel Type</p></Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <div className="flex flex-col gap-2">
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="petrol"
-                                        checked={checked.petrol}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    Petrol
-                                </label>
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="diesel"
-                                        checked={checked.diesel}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    Diesel
-                                </label>
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="electric"
-                                        checked={checked.electric}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    Electric
-                                </label>
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="cng"
-                                        checked={checked.cng}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    CNG
-                                </label>
+                                {["petrol", "diesel", "electric", "cng"].map((fuel) => (
+                                    <label key={fuel} className="flex items-center text-sm">
+                                        <input
+                                            type="checkbox"
+                                            name={fuel}
+                                            checked={checked[fuel]}
+                                            onChange={handleCheck}
+                                            className="mx-2 w-4 h-4 accent-mid"
+                                        />
+                                        {fuel.charAt(0).toUpperCase() + fuel.slice(1)}
+                                    </label>
+                                ))}
                             </div>
                         </AccordionDetails>
                     </Accordion>
 
-                    {/* Seats Type */}
+                    {/* --- Seats --- */}
                     <Accordion defaultExpanded>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />} className="h-15">
-                            <Typography component="span">
-                                <p className="font-bold m-0 text-md poppins-semibold">Seats</p>
-                            </Typography>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography><p className="font-bold m-0 text-md poppins-semibold">Seats</p></Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <div className="flex flex-col gap-2">
@@ -294,82 +295,61 @@ export default function Lineup() {
                         </AccordionDetails>
                     </Accordion>
 
-                    {/* User Ratings */}
+                    {/* --- Ratings --- */}
                     <Accordion defaultExpanded>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />} className="h-15">
-                            <Typography component="span">
-                                <p className="font-bold m-0 text-md poppins-semibold">User Ratings</p>
-                            </Typography>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            <Typography><p className="font-bold m-0 text-md poppins-semibold">User Ratings</p></Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <div className="flex flex-col gap-2">
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="fourFiveRated"
-                                        checked={checked.fourFiveRated}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    4.5+ Rated
-                                </label>
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="fourRated"
-                                        checked={checked.fourRated}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    4+ Rated
-                                </label>
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="threeEightRated"
-                                        checked={checked.threeEightRated}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    3.8+ Rated
-                                </label>
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="threeFiveRated"
-                                        checked={checked.threeFiveRated}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    3.5+ Rated
-                                </label>
-                                <label className="flex items-center text-sm">
-                                    <input
-                                        type="checkbox"
-                                        name="allRated"
-                                        checked={checked.allRated}
-                                        onChange={handleCheck}
-                                        className="mx-2 w-4 h-4 accent-mid"
-                                    />
-                                    All
-                                </label>
+                                {[
+                                    { name: "fourFiveRated", label: "4.5+ Rated" },
+                                    { name: "fourRated", label: "4+ Rated" },
+                                    { name: "threeEightRated", label: "3.8+ Rated" },
+                                    { name: "threeFiveRated", label: "3.5+ Rated" },
+                                    { name: "allRated", label: "All" },
+                                ].map(({ name, label }) => (
+                                    <label key={name} className="flex items-center text-sm">
+                                        <input
+                                            type="checkbox"
+                                            name={name}
+                                            checked={checked[name]}
+                                            onChange={handleCheck}
+                                            className="mx-2 w-4 h-4 accent-mid"
+                                        />
+                                        {label}
+                                    </label>
+                                ))}
                             </div>
                         </AccordionDetails>
                     </Accordion>
                 </div>
             </div>
 
-            {/* Toggle button */}
+            {/* --- Mobile Filter Toggle Button --- */}
             <button
                 className="lg:hidden block absolute bg-mid text-white w-10 top-22 left-2 p-2 rounded"
                 onClick={handleToggleFilters}
             >
-                {isFiltersOpen ? <img src="./close.png" className='w-5 h-5 invert' alt="Menu" /> 
-                : <img src="./setting.png" className='w-5 h-5 invert' alt="Close" />}
+                {isFiltersOpen
+                    ? <img src="./close.png" className='w-5 h-5 invert' alt="Close" />
+                    : <img src="./setting.png" className='w-5 h-5 invert' alt="Menu" />}
             </button>
 
-            {/* Right side placeholder */}
-            <div className="flex-grow"></div>
+            {/* --- Right Panel (Content area placeholder) --- */}
+            <div className="flex-grow">
+                <div className='w-full h-1/5'>
+                    <div className='h-3/5 flex items-center'>
+                        <input type="text" className='md:border my-2 border-green-700 bg-white w-40 md:w-4/5 py-2.5 px-4 rounded-lg mx-2 md:mx-3 poppins-semibold' placeholder='Search here!' />
+                        <button className='w-30 h-11 mx-1 bg-green-200 rounded text-white bg-mid poppins-semibold flex items-center justify-center'>
+                            <img src="/Search.png" className='w-4 h-4 mx-2 invert' />
+                            Search
+                        </button>
+                    </div>
+                    <div className='h-2/5'></div>
+                </div>
+                <div className='w-full h-/5 hide-scrollbar'></div>
+            </div>
         </div>
     );
 }

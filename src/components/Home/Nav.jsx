@@ -15,12 +15,21 @@ export default function Navbar() {
     const isLoginPage = location.pathname === '/login' || location.pathname === '/signup';
     const isSearchPage = location.pathname === '/search';
     const isProfilePage = location.pathname === '/profile';
+    const isVehicles = location.pathname === '/lineup';
+
+    // Get tokens form the local storage
+    const accessToken = sessionStorage.getItem('accessToken');
+    const deviceId = sessionStorage.getItem('deviceId');
 
     useEffect(() => {
         const checkAuth = async () => {
             try {
                 const res = await axios.get(`${serverUrl}`, {
-                    withCredentials: true
+                    withCredentials: true,
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Device-Id': deviceId
+                    }
                 });
                 if (res.status === 200) {
                     setIsLogin(true);
@@ -74,9 +83,11 @@ export default function Navbar() {
             <div className='flex items-center justify-end z-50'>
                 {/* Desktop buttons */}
                 <div className='hidden md:flex items-center'>
-                    {!isSearchPage && (
+                    {!isSearchPage && !isVehicles && (
+
                         <Link to='/search' className="!no-underline ml-2">
-                            <button className='w-24 md:w-32 h-10 bg-green-200 rounded text-white bg-mid poppins-semibold mr-2'>
+                            <button className='w-24 md:w-32 h-10 bg-green-200 rounded text-white bg-mid poppins-semibold mr-2 flex items-center justify-center'>
+                                <img src="/Search.png" className='w-4 h-4 mx-2 invert' />
                                 Search
                             </button>
                         </Link>
@@ -109,7 +120,7 @@ export default function Navbar() {
                 {/* Mobile buttons */}
                 <div className='md:hidden flex items-center gap-3 justify-end'>
                     {/* Search Toggle Button */}
-                    {!isSearchPage && (
+                    {!isSearchPage && !isVehicles && (
                         <div
                             className='w-10 h-10 bg-gray-200 rounded-lg z-50 cursor-pointer flex items-center justify-center'
                             onClick={() => {
@@ -170,7 +181,8 @@ export default function Navbar() {
             {searchOpen && (
                 <div className='md:hidden flex items-center z-50 absolute top-20 left-0 w-full bg-white p-4'>
                     <Link to='/search' className="!no-underline ml-2">
-                        <button className='w-24 h-10 mx-3 bg-green-200 rounded text-white bg-mid poppins-semibold'>
+                        <button className='w-28 h-10 mx-3 bg-green-200 rounded text-white bg-mid poppins-semibold flex items-center justify-center'>
+                            <img src="/Search.png" className='w-4 h-4 mx-2 invert' />
                             Search
                         </button>
                     </Link>

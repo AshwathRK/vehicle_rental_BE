@@ -38,7 +38,7 @@ export default function App() {
                         <Signup />
                     </>
                 } />
-                <Route path="/lineup" element={
+                <Route path="/lineup/:id?" element={
                     <>
                         <Navbar />
                         <LineUp />

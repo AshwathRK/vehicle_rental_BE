@@ -68,7 +68,7 @@ export default function Populer() {
         fetchCost()
     }, [])
 
-    console.log(manageCost)
+    // console.log(manageCost)
 
     // === Image Slider Functions for Top-Rated Cars ===
     const handlePrevForRate = (id, length) => {
