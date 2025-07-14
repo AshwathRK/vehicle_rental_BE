@@ -25,6 +25,9 @@ export default function Lineup() {
     const location = useLocation();
     const [categoryId, setCategoryId] = useState(null);
 
+    const[search, setSearch] = useState([])
+    const[serched, setSearched] = useState('')
+
     useEffect(() => {
         const query = new URLSearchParams(location.search);
         const token = query.get('token');
@@ -61,6 +64,10 @@ export default function Lineup() {
         categories: {} // <- dynamic categories
     });
 
+    const [selectedFilter, setSelectedFilter] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState([]);
+
+    // Catugory check
     useEffect(() => {
         if (!categoryId || categories.length === 0) return;
 
@@ -154,11 +161,72 @@ export default function Lineup() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    const getSelectedFilters = () => {
+        const { categories, ...rest } = checked;
+
+        // 1. Get main filters that are true
+        const selectedMain = Object.entries(rest)
+            .filter(([_, value]) => value === true)
+            .map(([key]) => key);
+
+        // 2. Get categories that are true
+        const selectedCategories = Object.entries(categories)
+            .filter(([_, value]) => value === true)
+            .map(([key]) => key);
+
+        setSelectedFilter([...selectedMain]);
+        setSelectedCategory([...selectedCategories]);
+
+        return {
+            filters: selectedMain,
+            categories: selectedCategories,
+        };
+    };
+
+    useEffect(() => {
+        getSelectedFilters();
+    }, [checked]);
+
+    const allFilters = (selectedFilter.concat(selectedCategory));
+
+    const searchValue = (event)=>{
+        setSearch(event.target.value)
+    }
+
+    const setSearchValue = ()=>{
+        setSearched(search)
+    }
+
+    console.log(serched)
+    console.log(allFilters)
+    console.log(value1)
+
+    const resetFilters = () => {
+        setChecked({
+            delivery: false,
+            manual: false,
+            automatic: false,
+            petrol: false,
+            diesel: false,
+            electric: false,
+            cng: false,
+            fourSeats: false,
+            sixSeats: false,
+            fourFiveRated: false,
+            fourRated: false,
+            threeEightRated: false,
+            threeFiveRated: false,
+            allRated: false,
+            categories: {}
+        });
+    }
+
+
     // --- UI ---
     return (
-        <div className="h-[calc(99.8vh-78.4px)] bg-lower flex flex-col lg:flex-row">
+        <div className="lg:h-[calc(99.8vh-78.4px)] h-screen bg-lower flex flex-col lg:flex-row">
             {/* --- Left Sidebar: Filters --- */}
-            <div className={`${isFiltersOpen ? 'lg:w-1/5 w-full' : 'w-0 lg:w-0'} bg-white lg:h-full h-auto border-r-2 lg:border-r-2 border-gray-200 accordion !bg-lower overflow-hidden transition-all duration-300`}>
+            <div className={`${isFiltersOpen ? 'lg:w-1/5 w-full h-screen fixed top-0 left-0 z-20 bg-white' : 'w-0 lg:w-1/5'} lg:relative lg:h-full h-auto border-r-2 lg:border-r-2 border-gray-200 accordion !bg-lower overflow-hidden transition-all duration-300`}>
                 <div className="w-full pl-5">
                     <div className="w-full h-20 flex items-end">
                         <h5 className="poppins-semibold">Filters</h5>
@@ -210,7 +278,7 @@ export default function Lineup() {
                                     valueLabelDisplay="on"
                                     getAriaValueText={(value) => `${value}`}
                                     disableSwap
-                                    min={manageCost.minPriceDay}
+                                    min={0}
                                     max={manageCost.maxPriceDay}
                                 />
                                 <p>₹/per day</p>
@@ -230,6 +298,7 @@ export default function Lineup() {
                                         <input
                                             type="checkbox"
                                             name={type}
+                                            data-type="transmission"
                                             checked={checked[type]}
                                             onChange={handleCheck}
                                             className="mx-2 w-4 h-4 accent-mid"
@@ -253,6 +322,7 @@ export default function Lineup() {
                                         <input
                                             type="checkbox"
                                             name={fuel}
+                                            data-type="fual-type"
                                             checked={checked[fuel]}
                                             onChange={handleCheck}
                                             className="mx-2 w-4 h-4 accent-mid"
@@ -275,6 +345,7 @@ export default function Lineup() {
                                     <input
                                         type="checkbox"
                                         name="fourSeats"
+                                        data-type="Seate"
                                         checked={checked.fourSeats}
                                         onChange={handleCheck}
                                         className="mx-2 w-4 h-4 accent-mid"
@@ -285,6 +356,7 @@ export default function Lineup() {
                                     <input
                                         type="checkbox"
                                         name="sixSeats"
+                                        data-type="Seate"
                                         checked={checked.sixSeats}
                                         onChange={handleCheck}
                                         className="mx-2 w-4 h-4 accent-mid"
@@ -313,6 +385,7 @@ export default function Lineup() {
                                         <input
                                             type="checkbox"
                                             name={name}
+                                            data-type="UserRatings"
                                             checked={checked[name]}
                                             onChange={handleCheck}
                                             className="mx-2 w-4 h-4 accent-mid"
@@ -328,7 +401,7 @@ export default function Lineup() {
 
             {/* --- Mobile Filter Toggle Button --- */}
             <button
-                className="lg:hidden block absolute bg-mid text-white w-10 top-22 left-2 p-2 rounded"
+                className="lg:hidden block bg-mid text-white w-10 p-2 rounded fixed top-22 left-2 z-30"
                 onClick={handleToggleFilters}
             >
                 {isFiltersOpen
@@ -337,18 +410,55 @@ export default function Lineup() {
             </button>
 
             {/* --- Right Panel (Content area placeholder) --- */}
-            <div className="flex-grow">
-                <div className='w-full h-1/5'>
-                    <div className='h-3/5 flex items-center'>
-                        <input type="text" className='md:border my-2 border-green-700 bg-white w-40 md:w-4/5 py-2.5 px-4 rounded-lg mx-2 md:mx-3 poppins-semibold' placeholder='Search here!' />
-                        <button className='w-30 h-11 mx-1 bg-green-200 rounded text-white bg-mid poppins-semibold flex items-center justify-center'>
-                            <img src="/Search.png" className='w-4 h-4 mx-2 invert' />
-                            Search
-                        </button>
+
+            <div className="flex-grow lg:pl-4">
+                {/* Top section with search bar and filter apply */}
+                <div className='w-full h-auto p-4 border-b-2 border-gray-200 lg:relative absolute top-[70px] lg:top-[0]'>
+                    <div className='flex flex-col lg:flex-row items-center justify-between gap-4'>
+                        <div className='flex flex-col lg:flex-row items-center gap-2 lg:gap-4 w-full lg:w-5/5'>
+                            <input
+                                type="text"
+                                className='w-full lg:w-5/5 md:border border-green-700 bg-white py-2.5 px-4 rounded-lg poppins-semibold'
+                                placeholder='Search here!'
+                                onChange={searchValue}
+                            />
+                            <button
+                                className='w-full lg:w-30 h-11 bg-green-200 rounded text-white bg-mid poppins-semibold flex items-center justify-center'
+                                onClick={setSearchValue}
+                            >
+                                <img src="/Search.png" className='w-4 h-4 mx-2 invert' />
+                                Search
+                            </button>
+                        </div>
+                        {allFilters.length > 0 && (
+                            <button className='poppins-bold border-2 rounded w-30 h-11' onClick={resetFilters}>Reset Filter</button>
+                        )}
                     </div>
-                    <div className='h-2/5'></div>
+                    {/* Selected Filter Container */}
+                    <div className="h-auto w-full flex items-center mt-4">
+                        {/* Inner container with border */}
+                        <div className="w-full h-auto flex flex-wrap items-center py-2 rounded gap-2">
+                            {/* Map through selected filters and render each one */}
+                            {allFilters.map((value, index) => (
+                                <div
+                                    key={value}
+                                    className="h-7 flex items-center justify-center rounded overflow-hidden"
+                                >
+                                    {/* Filter value container */}
+                                    <div className=" h-full bg-gray-500 flex justify-center items-center">
+                                        <p className="poppins-semibold text-sm m-0 text-white px-2">
+                                            {value.charAt(0).toUpperCase() + value.slice(1)}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-                <div className='w-full h-/5 hide-scrollbar'></div>
+                {/* Content area */}
+                <div className='w-full h-[590px] lg:h-[582px] hide-scrollbar'>
+                    {/* Add your content here */}
+                </div>
             </div>
         </div>
     );
