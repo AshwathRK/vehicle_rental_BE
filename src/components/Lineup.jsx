@@ -12,6 +12,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
 import { useLocation } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // --- ENV Config ---
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -25,8 +26,21 @@ export default function Lineup() {
     const location = useLocation();
     const [categoryId, setCategoryId] = useState(null);
 
-    const[search, setSearch] = useState([])
-    const[serched, setSearched] = useState('')
+    // --- Vehicle info fetched from the backed ---
+
+    const [vehicleInfo, setVehicleInfo] = useState([])
+    const [imageIndices, setImageIndices] = useState({});
+
+
+    // --- Vehicle Search bar ---
+    const [search, setSearch] = useState([])
+    const [serched, setSearched] = useState('')
+
+    useEffect(() => {
+        if (search.length === 0) {
+            setSearched('');
+        }
+    }, [search]);
 
     useEffect(() => {
         const query = new URLSearchParams(location.search);
@@ -42,8 +56,6 @@ export default function Lineup() {
             }
         }
     }, [location.search]);
-
-    // console.log(categoryId);
 
     // All filter checkbox states
     const [checked, setChecked] = useState({
@@ -62,6 +74,14 @@ export default function Lineup() {
         threeFiveRated: false,
         allRated: false,
         categories: {} // <- dynamic categories
+    });
+
+    const [filter, setFilter] = useState({
+        categories: {},
+        transmission: {},
+        fuelType: {},
+        seats: {},
+        userRatings: {}
     });
 
     const [selectedFilter, setSelectedFilter] = useState([]);
@@ -93,11 +113,11 @@ export default function Lineup() {
         setIsFiltersOpen(!isFiltersOpen);
     };
 
+
     const handleCheck = (event) => {
         const { name, checked: isChecked, dataset } = event.target;
 
         if (dataset.type === "category") {
-            // --- Dynamic Category Filter ---
             setChecked((prev) => ({
                 ...prev,
                 categories: {
@@ -105,24 +125,62 @@ export default function Lineup() {
                     [name]: isChecked
                 }
             }));
+            setFilter((prev) => ({
+                ...prev,
+                categories: {
+                    ...prev.categories,
+                    [name]: isChecked ? name : null
+                }
+            }));
         } else {
-            // --- Static Filter ---
             setChecked((prev) => ({
                 ...prev,
                 [name]: isChecked
             }));
+            // You might want to update other filter types (transmission, fuelType, seats, userRatings) here
+            // based on the name and isChecked value. Here's an example for transmission:
+            if (["manual", "automatic"].includes(name)) {
+                setFilter((prev) => ({
+                    ...prev,
+                    transmission: {
+                        ...prev.transmission,
+                        [name]: isChecked
+                    }
+                }));
+            } else if (["petrol", "diesel", "electric", "cng"].includes(name)) {
+                setFilter((prev) => ({
+                    ...prev,
+                    fuelType: {
+                        ...prev.fuelType,
+                        [name]: isChecked
+                    }
+                }));
+            } else if (["fourSeats", "sixSeats"].includes(name)) {
+                setFilter((prev) => ({
+                    ...prev,
+                    seats: {
+                        ...prev.seats,
+                        [name]: isChecked
+                    }
+                }));
+            } else if (["fourFiveRated", "fourRated", "threeEightRated", "threeFiveRated", "allRated"].includes(name)) {
+                setFilter((prev) => ({
+                    ...prev,
+                    userRatings: {
+                        ...prev.userRatings,
+                        [name]: isChecked
+                    }
+                }));
+            }
         }
     };
 
-    const handleChange1 = (_event, newValue, activeThumb) => {
+
+    const handleChange1 = (_event, newValue) => {
         // --- Price Range Slider Handler ---
         if (!Array.isArray(newValue)) return;
 
-        if (activeThumb === 0) {
-            setValue1([Math.min(newValue[0], value1[1] - 10), value1[1]]);
-        } else {
-            setValue1([value1[0], Math.max(newValue[1], value1[0] + 10)]);
-        }
+        setValue1(newValue);
     };
 
     // --- Effect: Fetch categories ---
@@ -189,17 +247,14 @@ export default function Lineup() {
 
     const allFilters = (selectedFilter.concat(selectedCategory));
 
-    const searchValue = (event)=>{
+    const searchValue = (event) => {
         setSearch(event.target.value)
     }
 
-    const setSearchValue = ()=>{
+    const setSearchValue = () => {
         setSearched(search)
     }
 
-    console.log(serched)
-    console.log(allFilters)
-    console.log(value1)
 
     const resetFilters = () => {
         setChecked({
@@ -221,10 +276,63 @@ export default function Lineup() {
         });
     }
 
+    useEffect(() => {
+        const fetchDataByFilter = async () => {
+            try {
+                // Stringify the filter object
+                const filterString = JSON.stringify(filter);
+                const searchString = serched.toString();
+                const priceRangeString = value1.join(',');
+
+                const response = await axios.get(`${serverUrl}/filtervehicles`, {
+                    withCredentials: true,
+                    headers: {
+                        'filter': filterString,
+                        'search': searchString,
+                        'pricerange': priceRangeString,
+                    }
+                });
+                setVehicleInfo(response?.data)
+                const bookingIndices = {};
+                response?.data.forEach((car) => {
+                    bookingIndices[car._id] = 0;
+                });
+                setImageIndices((prev) => ({ ...prev, ...bookingIndices }));
+                // console.log(response);
+
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        fetchDataByFilter();
+    }, [
+        serched,
+        value1,
+        filter
+    ]);
+
+    console.log(vehicleInfo)
+
+    const handlePrev = (id, length) => {
+        setImageIndices((prev) => ({
+            ...prev,
+            [id]: prev[id] === 0 ? length - 1 : prev[id] - 1,
+        }));
+    };
+
+    const handleNext = (id, length) => {
+        setImageIndices((prev) => ({
+            ...prev,
+            [id]: prev[id] === length - 1 ? 0 : prev[id] + 1,
+        }));
+    };
+
+    console.log(vehicleInfo)
 
     // --- UI ---
     return (
-        <div className="lg:h-[calc(99.8vh-78.4px)] h-screen bg-lower flex flex-col lg:flex-row">
+        <div className="lg:h-[calc(99.8vh-78.4px)] h-screen flex flex-col lg:flex-row">
             {/* --- Left Sidebar: Filters --- */}
             <div className={`${isFiltersOpen ? 'lg:w-1/5 w-full h-screen fixed top-0 left-0 z-20 bg-white' : 'w-0 lg:w-1/5'} lg:relative lg:h-full h-auto border-r-2 lg:border-r-2 border-gray-200 accordion !bg-lower overflow-hidden transition-all duration-300`}>
                 <div className="w-full pl-5">
@@ -274,7 +382,7 @@ export default function Lineup() {
                                 <Slider
                                     getAriaLabel={() => 'Minimum distance'}
                                     value={value1}
-                                    onChange={handleChange1}
+                                    onChangeCommitted={handleChange1}
                                     valueLabelDisplay="on"
                                     getAriaValueText={(value) => `${value}`}
                                     disableSwap
@@ -317,7 +425,7 @@ export default function Lineup() {
                         </AccordionSummary>
                         <AccordionDetails>
                             <div className="flex flex-col gap-2">
-                                {["petrol", "diesel", "electric", "cng"].map((fuel) => (
+                                {["petrol", "diesel", "electric", "CNG"].map((fuel) => (
                                     <label key={fuel} className="flex items-center text-sm">
                                         <input
                                             type="checkbox"
@@ -456,8 +564,76 @@ export default function Lineup() {
                     </div>
                 </div>
                 {/* Content area */}
-                <div className='w-full h-[590px] lg:h-[582px] hide-scrollbar'>
-                    {/* Add your content here */}
+                <div className='w-full h-[590px] lg:h-[582px] hide-scrollbar overflow-y-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-2'>
+                    {vehicleInfo.map((car, key) => {
+                        const images = car.images || [];
+                        console.log(images)
+                        const imageIndex = imageIndices[car._id] || 0;
+                        const imageData = images[imageIndex];
+                        const imageSrc = imageData
+                            ? `data:${imageData.contentType};base64,${imageData.data}`
+                            : './fallback.jpg';
+
+                            // console.log(imageData)
+                            // console.log(imageSrc)
+
+                        return (
+                            <div key={key} className="w-96 h-76 border rounded shadow flex-shrink-0 bg-white relative">
+                                <div className="h-4/5 relative">
+                                    {/* === Car Image === */}
+                                    <img
+                                        src={imageSrc}
+                                        alt={`${car.make}-${car.model}`}
+                                        className="w-[340px] h-[200px] object-cover rounded-t-md mx-auto"
+                                    />
+
+                                    {/* === Image Navigation Buttons === */}
+                                    {images.length > 1 && (
+                                        <>
+                                            <button onClick={() => handlePrev(car._id, images.length)} className="absolute top-1/2 left-2 -translate-y-1/2 bg-black bg-opacity-40 p-1 rounded-full text-white hover:bg-opacity-70 z-10">
+                                                <ChevronLeft size={20} />
+                                            </button>
+                                            <button onClick={() => handleNext(car._id, images.length)} className="absolute top-1/2 right-2 -translate-y-1/2 bg-black bg-opacity-40 p-1 rounded-full text-white hover:bg-opacity-70 z-10">
+                                                <ChevronRight size={20} />
+                                            </button>
+                                        </>
+                                    )}
+
+                                    {/* === Overlay Info (Car Name, Specs, Booking Count) === */}
+                                    <div className="w-full h-20 absolute bottom-0 left-0 flex justify-between px-2 lg-grad">
+                                        <div className="h-full flex flex-col justify-center">
+                                            <h6 className="text-white poppins-semibold">{car.make} - {car.model}</h6>
+                                            <p className="text-white poppins-semibold text-[12px]">
+                                                {car.fuelType}. {car.transmission}. {car.seatingCapacity} Seats
+                                            </p>
+                                        </div>
+                                        <div className="w-[120px] flex items-center">
+                                            <img src="./reviewstar.png" className="w-4 mx-2" alt="review star" />
+                                            <h6 className="text-white poppins-semibold m-0">
+                                                Chosen by {car.bookingCount} renter{car.bookingCount !== 1 && 's'}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* === Pricing & Booking Button === */}
+                                <div className="w-full h-1/5 px-2 flex items-center justify-between bg-white">
+                                    <div className="flex flex-col">
+                                        <p className="text-sm m-0 poppins-bold mx-2">₹{car.pricePerDay} /day</p>
+                                        {car.delivery && (
+                                            <p className="text-sm m-0 poppins-bold flex items-center">
+                                                <img src="./destination.png" className="w-3 h-3 mx-1" alt="Delivery" />
+                                                Delivery available
+                                            </p>
+                                        )}
+                                    </div>
+                                    <button className="bg-primery text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
+                                        Book Now
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

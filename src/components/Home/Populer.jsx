@@ -100,6 +100,8 @@ export default function Populer() {
         }));
     };
 
+    console.log(topRatedCar)
+
     // === Main UI Rendering ===
     return (
         <div className="w-full flex flex-col lg:flex-row gap-2">
@@ -237,6 +239,8 @@ export default function Populer() {
                                 ? `data:${imageData.contentType};base64,${imageData.data}`
                                 : './fallback.jpg';
 
+                                // console.log(imageData)
+                                // console.log(imageSrc)
                             return (
                                 <div key={key} className="min-w-[340px] h-76 border rounded shadow mx-1 flex-shrink-0 bg-white relative">
                                     <div className="h-4/5 relative">
