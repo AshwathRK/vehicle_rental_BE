@@ -65,7 +65,7 @@ export default function Lineup() {
         petrol: false,
         diesel: false,
         electric: false,
-        cng: false,
+        hybrid: false,
         fourSeats: false,
         sixSeats: false,
         fourFiveRated: false,
@@ -147,7 +147,7 @@ export default function Lineup() {
                         [name]: isChecked
                     }
                 }));
-            } else if (["petrol", "diesel", "electric", "cng"].includes(name)) {
+            } else if (["petrol", "diesel", "electric", "hybrid"].includes(name)) {
                 setFilter((prev) => ({
                     ...prev,
                     fuelType: {
@@ -264,7 +264,7 @@ export default function Lineup() {
             petrol: false,
             diesel: false,
             electric: false,
-            cng: false,
+            hybrid: false,
             fourSeats: false,
             sixSeats: false,
             fourFiveRated: false,
@@ -274,6 +274,15 @@ export default function Lineup() {
             allRated: false,
             categories: {}
         });
+        setFilter({
+            categories: {},
+            transmission: {},
+            fuelType: {},
+            seats: {},
+            userRatings: {}
+        }
+
+        )
     }
 
     useEffect(() => {
@@ -312,7 +321,7 @@ export default function Lineup() {
         filter
     ]);
 
-    console.log(vehicleInfo)
+    // console.log(vehicleInfo)
 
     const handlePrev = (id, length) => {
         setImageIndices((prev) => ({
@@ -328,11 +337,9 @@ export default function Lineup() {
         }));
     };
 
-    console.log(vehicleInfo)
-
     // --- UI ---
     return (
-        <div className="lg:h-[calc(99.8vh-78.4px)] h-screen flex flex-col lg:flex-row">
+        <div className="lg:h-[calc(99.8vh-78.4px)] relative top-[78px] h-screen flex flex-col lg:flex-row">
             {/* --- Left Sidebar: Filters --- */}
             <div className={`${isFiltersOpen ? 'lg:w-1/5 w-full h-screen fixed top-0 left-0 z-20 bg-white' : 'w-0 lg:w-1/5'} lg:relative lg:h-full h-auto border-r-2 lg:border-r-2 border-gray-200 accordion !bg-lower overflow-hidden transition-all duration-300`}>
                 <div className="w-full pl-5">
@@ -425,7 +432,7 @@ export default function Lineup() {
                         </AccordionSummary>
                         <AccordionDetails>
                             <div className="flex flex-col gap-2">
-                                {["petrol", "diesel", "electric", "CNG"].map((fuel) => (
+                                {["petrol", "diesel", "electric", "hybrid"].map((fuel) => (
                                     <label key={fuel} className="flex items-center text-sm">
                                         <input
                                             type="checkbox"
@@ -509,19 +516,28 @@ export default function Lineup() {
 
             {/* --- Mobile Filter Toggle Button --- */}
             <button
-                className="lg:hidden block bg-mid text-white w-10 p-2 rounded fixed top-22 left-2 z-30"
+                className="lg:hidden block bg-mid text-white w-10 p-2 rounded absolute top-24.5 left-[84vw] sm:left-[91vw] z-30"
                 onClick={handleToggleFilters}
             >
                 {isFiltersOpen
-                    ? <img src="./close.png" className='w-5 h-5 invert' alt="Close" />
-                    : <img src="./setting.png" className='w-5 h-5 invert' alt="Menu" />}
+                    ?
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" alt="Close" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                    : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" alt="Menu" stroke-width="1.5" stroke="currentColor" className="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                    </svg>}
+
+                        {/* <img src="./close.png" className='w-5 h-5 invert'/> */}
+
+
             </button>
 
             {/* --- Right Panel (Content area placeholder) --- */}
 
             <div className="flex-grow lg:pl-4">
                 {/* Top section with search bar and filter apply */}
-                <div className='w-full h-auto p-4 border-b-2 border-gray-200 lg:relative absolute top-[70px] lg:top-[0]'>
+                <div className='w-full h-auto lg:h-[300px] p-4 border-b-2 border-gray-200 lg:relative absolute top-[70px] lg:top-[0]'>
                     <div className='flex flex-col lg:flex-row items-center justify-between gap-4'>
                         <div className='flex flex-col lg:flex-row items-center gap-2 lg:gap-4 w-full lg:w-5/5'>
                             <input
@@ -564,27 +580,23 @@ export default function Lineup() {
                     </div>
                 </div>
                 {/* Content area */}
-                <div className='w-full h-[590px] lg:h-[582px] hide-scrollbar overflow-y-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-2'>
+                <div className={`w-full max-h-[80vh] absolute ${allFilters.length===0?`top-[300px]`:`top-[400px]`} lg:relative lg:top-auto hide-scrollbar overflow-y-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 p-4`}>
                     {vehicleInfo.map((car, key) => {
                         const images = car.images || [];
-                        console.log(images)
                         const imageIndex = imageIndices[car._id] || 0;
                         const imageData = images[imageIndex];
                         const imageSrc = imageData
                             ? `data:${imageData.contentType};base64,${imageData.data}`
                             : './fallback.jpg';
 
-                            // console.log(imageData)
-                            // console.log(imageSrc)
-
                         return (
-                            <div key={key} className="w-96 h-76 border rounded shadow flex-shrink-0 bg-white relative">
-                                <div className="h-4/5 relative">
+                            <div key={key} className="w-full max-w-[400px] h-auto border rounded shadow bg-white relative mx-auto">
+                                <div className="h-auto relative">
                                     {/* === Car Image === */}
                                     <img
                                         src={imageSrc}
                                         alt={`${car.make}-${car.model}`}
-                                        className="w-[340px] h-[200px] object-cover rounded-t-md mx-auto"
+                                        className="w-full h-[200px] object-cover rounded-t-md"
                                     />
 
                                     {/* === Image Navigation Buttons === */}
@@ -599,7 +611,7 @@ export default function Lineup() {
                                         </>
                                     )}
 
-                                    {/* === Overlay Info (Car Name, Specs, Booking Count) === */}
+                                    {/* === Overlay Info === */}
                                     <div className="w-full h-20 absolute bottom-0 left-0 flex justify-between px-2 lg-grad">
                                         <div className="h-full flex flex-col justify-center">
                                             <h6 className="text-white poppins-semibold">{car.make} - {car.model}</h6>
@@ -617,7 +629,7 @@ export default function Lineup() {
                                 </div>
 
                                 {/* === Pricing & Booking Button === */}
-                                <div className="w-full h-1/5 px-2 flex items-center justify-between bg-white">
+                                <div className="w-full px-2 py-3 flex items-center justify-between bg-white">
                                     <div className="flex flex-col">
                                         <p className="text-sm m-0 poppins-bold mx-2">₹{car.pricePerDay} /day</p>
                                         {car.delivery && (
@@ -635,6 +647,7 @@ export default function Lineup() {
                         );
                     })}
                 </div>
+
             </div>
         </div>
     );

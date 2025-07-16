@@ -8,17 +8,17 @@ import { Route, Routes } from 'react-router-dom';
 import LogIn from './components/Login';
 import LineUp from './components/Lineup';
 import Signup from './components/Signup';
-import Search  from './components/SearchPage';
+import Search from './components/SearchPage';
 import Profile from './components/Profile';
+import PrivateRoute from './PrivateRoute';
 
 export default function App() {
     return (
         <div>
-            
+            <Navbar />
             <Routes>
                 <Route path="/" element={
                     <>
-                        <Navbar />
                         <HeroSection />
                         <Category />
                         <Populer />
@@ -28,34 +28,28 @@ export default function App() {
                 } />
                 <Route path="/login" element={
                     <>
-                        <Navbar />
                         <LogIn />
                     </>
                 } />
                 <Route path="/signup" element={
                     <>
-                        <Navbar />
                         <Signup />
                     </>
                 } />
                 <Route path="/lineup/:id?" element={
                     <>
-                        <Navbar />
                         <LineUp />
                     </>
                 } />
                 <Route path="/search" element={
                     <>
-                        <Navbar />
                         <Search />
                     </>
                 } />
-                <Route path="/profile" element={
-                    <>
-                        <Navbar />
-                        <Profile />
-                    </>
-                } />
+                <Route element={<PrivateRoute />}>
+                    <Route path="/profile/*" element={<Profile />}
+                    />
+                </Route>
             </Routes>
         </div>
     );

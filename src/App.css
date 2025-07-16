@@ -255,5 +255,12 @@ input.custom-checkbox:checked {
   scrollbar-width: none; /* Firefox */
 }
 
+/* Profile page */
+
+.transition-width {
+  transition: width 0.3s ease-in-out;
+}
+
+
 
 

@@ -14,7 +14,7 @@ export default function Navbar() {
     const location = useLocation();
     const isLoginPage = location.pathname === '/login' || location.pathname === '/signup';
     const isSearchPage = location.pathname === '/search';
-    const isProfilePage = location.pathname === '/profile';
+    const isProfilePage = location.pathname === '/profile/affiliate' || location.pathname === '/profile/setting' || location.pathname === '/profile'
     const isVehicles = location.pathname === '/lineup';
 
     // Get tokens form the local storage
@@ -66,17 +66,17 @@ export default function Navbar() {
     }, [isLogin, location.pathname]);
 
     return (
-        <div className='Navbar px-4 md:px-16 h-20 border-b-2 border-white flex items-center justify-between md:justify-around shadow-sm relative'>
+        <div className='Navbar px-4 w-full md:px-16 h-20 border-b-2 border-white flex items-center fixed top-0 justify-between md:justify-around shadow-sm bg-mid z-300'>
             <Link to='/' className='!no-underline'>
-                <img src='/Home/Logo.png' className='w-10 mx-2 md:mx-5 navLogo cursor-pointer' alt="car logo" />
+                <img src='/Home/Logo.png' className='w-10 mx-2 md:mx-5 navLogo cursor-pointer invert' alt="car logo" />
             </Link>
 
-            <ul className={` ${mobileMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row w-full md:w-50 justify-around items-center h-[130px] md:h-full absolute md:relative bg-white md:bg-transparent top-20 left-0 my-0 md:top-auto md:left-auto z-40 pt-10 md:pt-0 overflow-x-hidden overflow-y-auto`}>
+            <ul className={` ${mobileMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row w-full md:w-50 justify-around items-center h-[130px] md:h-full absolute md:relative bg-mid md:bg-transparent top-20 left-0 my-0 md:top-auto md:left-auto z-40 pt-10 md:pt-0 overflow-x-hidden overflow-y-auto`}>
                 <Link to='/' className="!no-underline">
-                    <li className='text-black poppins-bold cursor-pointer mx-1 py-2 md:py-0'>HOME</li>
+                    <li className='text-black poppins-bold cursor-pointer text-white mx-1 py-2 md:py-0'>HOME</li>
                 </Link>
                 <Link to='/lineup' className="!no-underline">
-                    <li className='text-black poppins-bold cursor-pointer mx-1 py-2 md:py-0'>VEHICLES</li>
+                    <li className='text-black poppins-bold cursor-pointer text-white mx-1 py-2 md:py-0'>VEHICLES</li>
                 </Link>
             </ul>
 
@@ -94,8 +94,9 @@ export default function Navbar() {
                     )}
                     {!showLoginPage && (
                         <Link to='/login' className="!no-underline ml-2">
-                            <button className='w-24 md:w-32 h-10 bg-green-200 rounded text-white bg-primery poppins-semibold'>
-                                Login/Signup
+                            <button className='w-24 md:w-32 h-10 bg-green-200 rounded text-white bg-primery poppins-semibold flex justify-center items-center'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="feather feather-user mx-1"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                Sign-in
                             </button>
                         </Link>
                     )}
@@ -110,7 +111,7 @@ export default function Navbar() {
                             <img src="./boy.png" className='w-10' alt="Profile" />
                             <Link to='/profile' className="!no-underline ml-2">
                                 <button className='w-3 h-3 m-0'>
-                                    <img src="./arrow-down.png" className='w-5' alt="Arrow Down" />
+                                    <img src="./arrow-down.png" className='w-5 invert' alt="Arrow Down" />
                                 </button>
                             </Link>
                         </div>
@@ -158,8 +159,9 @@ export default function Navbar() {
                     {/* Login/Signup Button */}
                     {!showLoginPage && (
                         <Link to='/login' className='!no-underline'>
-                            <button className='w-30 h-10 bg-green-200 rounded text-white bg-primery poppins-semibold'>
-                                Login/Signup
+                            <button className='w-24 md:w-32 h-10 bg-green-200 rounded text-white bg-primery poppins-semibold flex justify-center items-center'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="feather feather-user mx-1"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                Sign-in
                             </button>
                         </Link>
                     )}
@@ -170,7 +172,7 @@ export default function Navbar() {
                             <img src='./boy.png' className='w-10' alt='Profile' />
                             <Link to='/profile' className='!no-underline ml-2'>
                                 <button className='w-3 h-3 m-0'>
-                                    <img src='./arrow-down.png' className='w-5' alt='Arrow Down' />
+                                    <img src='./arrow-down.png' className='w-5 invert' alt='Arrow Down' />
                                 </button>
                             </Link>
                         </div>

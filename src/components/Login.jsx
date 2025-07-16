@@ -18,7 +18,6 @@ export default function LogIn() {
     };
 
     const handleSubmit = async (event) => {
-        debugger
         event.preventDefault();
         try {
             const response = await axios.post(
@@ -48,7 +47,7 @@ export default function LogIn() {
     };
 
     return (
-        <div className="h-[calc(100vh-78.5px)] flex items-center justify-center bg-lower">
+        <div className="h-[calc(100vh-78.5px)] flex items-center relative top-[78px] justify-center !p-4 bg-lower">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Sign In</h2>
                 <form className="space-y-5" onSubmit={handleSubmit}>
@@ -68,7 +67,6 @@ export default function LogIn() {
                             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
-
                     <div className="relative">
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                             Password:

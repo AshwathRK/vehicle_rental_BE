@@ -100,7 +100,7 @@ export default function Populer() {
         }));
     };
 
-    console.log(topRatedCar)
+    // console.log(topRatedCar)
 
     // === Main UI Rendering ===
     return (

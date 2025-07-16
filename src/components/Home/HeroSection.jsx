@@ -23,7 +23,7 @@ export default function HeroSection() {
     }, []);
 
     return (
-        <div className='hero-container min-h-[calc(100vh-80px)] md:h-[calc(90vh-80px)] bg-lower md:px-16 px-5 flex flex-col md:flex-row'>
+        <div className='hero-container min-h-[calc(100vh-80px)] md:h-[calc(90vh-80px)] bg-lower md:px-16 px-5 py-[120px] flex flex-col md:flex-row'>
             <div ref={titleRef} className='hero-content h-full md:w-1/2 flex flex-col justify-around md:items-start items-center py-12 md:py-40'>
                 <div>
                     <h1
