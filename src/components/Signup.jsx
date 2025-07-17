@@ -92,6 +92,7 @@ export default function Signup() {
                                     name="fullname"
                                     placeholder="Full Name"
                                     autoComplete="name"
+                                    autocomplete="off"
                                     required
                                     className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     onChange={handleChange}
@@ -107,7 +108,7 @@ export default function Signup() {
                                     id="email"
                                     name="email"
                                     placeholder="Email"
-                                    autoComplete="email"
+                                    autocomplete="off"
                                     required
                                     className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     onChange={handleChange}

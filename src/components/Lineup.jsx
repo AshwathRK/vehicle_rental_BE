@@ -13,6 +13,7 @@ import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
 import { useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ClimbingBoxLoader, FadeLoader } from 'react-spinners';
 
 // --- ENV Config ---
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -25,6 +26,7 @@ export default function Lineup() {
     const [value1, setValue1] = useState([1000, 3000]); // slider values
     const location = useLocation();
     const [categoryId, setCategoryId] = useState(null);
+    const [loadder, setLoadder] = useState(false);
 
     // --- Vehicle info fetched from the backed ---
 
@@ -289,6 +291,7 @@ export default function Lineup() {
         const fetchDataByFilter = async () => {
             try {
                 // Stringify the filter object
+                setLoadder(true)
                 const filterString = JSON.stringify(filter);
                 const searchString = serched.toString();
                 const priceRangeString = value1.join(',');
@@ -306,11 +309,12 @@ export default function Lineup() {
                 response?.data.forEach((car) => {
                     bookingIndices[car._id] = 0;
                 });
+                
                 setImageIndices((prev) => ({ ...prev, ...bookingIndices }));
-                // console.log(response);
-
+                setLoadder(false)
             } catch (error) {
                 console.log(error);
+                setLoadder(false)
             }
         };
 
@@ -336,6 +340,14 @@ export default function Lineup() {
             [id]: prev[id] === length - 1 ? 0 : prev[id] + 1,
         }));
     };
+
+    if(vehicleInfo.length===0){
+        return(
+            <div className='h-[calc(99.8vh-78.4px)] bg-[#f5f7fa] flex relative top-[78px] items-center justify-center'>
+                <ClimbingBoxLoader />
+            </div>
+        )
+    }
 
     // --- UI ---
     return (
@@ -580,7 +592,12 @@ export default function Lineup() {
                     </div>
                 </div>
                 {/* Content area */}
+                {loadder?
+                <div className='w-full h-[60vh] flex items-center justify-center'>
+                    <FadeLoader></FadeLoader>
+                </div>:
                 <div className={`w-full max-h-[80vh] absolute ${allFilters.length===0?`top-[300px]`:`top-[400px]`} lg:relative lg:top-auto hide-scrollbar overflow-y-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 p-4`}>
+                    
                     {vehicleInfo.map((car, key) => {
                         const images = car.images || [];
                         const imageIndex = imageIndices[car._id] || 0;
@@ -588,7 +605,7 @@ export default function Lineup() {
                         const imageSrc = imageData
                             ? `data:${imageData.contentType};base64,${imageData.data}`
                             : './fallback.jpg';
-
+                        
                         return (
                             <div key={key} className="w-full max-w-[400px] h-auto border rounded shadow bg-white relative mx-auto">
                                 <div className="h-auto relative">
@@ -647,7 +664,7 @@ export default function Lineup() {
                         );
                     })}
                 </div>
-
+                }
             </div>
         </div>
     );
