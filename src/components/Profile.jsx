@@ -48,9 +48,33 @@ export default function Profile() {
         checkAuth();
     }, []);
 
+    const handleLogout = () => {
+        sessionStorage.clear();
+        location.reload();
+    }
+
     const activeNav = (menu) => {
         setActive(menu);
     };
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth <= 767) {
+                setHiddenMenu(true);
+            } else {
+                setHiddenMenu(false);
+            }
+        };
+
+        // Set initial value
+        handleResize();
+
+        // Add event listener for window resize
+        window.addEventListener('resize', handleResize);
+
+        // Cleanup
+        return () => window.removeEventListener('resize', handleResize);
+    }, [window.innerWidth]);
 
     if (userInfo.length === 0) {
         return (
@@ -64,8 +88,7 @@ export default function Profile() {
         <div className="h-[calc(99.8vh-78.4px)] bg-[#f5f7fa] flex relative top-[78px]">
             {/* Sidebar */}
             <nav
-                className={`h-full  transition-all border-r border-[#d4d4d4] duration-300 ease-in-out`}
-                style={{ width: hiddenMenu ? '0' : '20%' }}
+                className={`h-full absolute w-[50%] ${hiddenMenu ? 'md:w-0 hidden' : 'md:w-[20%] w-[50%] bg-mid md:!bg-[#f5f7fa]'} md:relative z-10 transition-all border-r border-[#d4d4d4] duration-300 ease-in-out`}
             >
                 {!hiddenMenu && (
                     <>
@@ -92,14 +115,14 @@ export default function Profile() {
                             </div>
                             <div className='rounded w-[90%] h-[50%] bg-white border-[1px] border-[#d4d4d4] flex'>
                                 <div className='w-2/10 flex items-center justify-center'>
-                                    <img src="./Profile.png" className='w-10 h-10 rounded' />
+                                    <img src={userInfo.profile} className='w-10 h-10 rounded' />
                                 </div>
                                 <div className='w-6/10 px-2 py-2'>
                                     <h6 className='m-0'>{userInfo.fullname?.charAt(0).toUpperCase() + userInfo.fullname?.slice(1)}</h6>
                                     <p className='m-0 poppoins-semibold text-[#828181] !text-[0.8vw]'>{userInfo.isAdmin ? 'Admin' : (userInfo.isAffiliate ? 'Affiliate' : 'User')}</p>
                                 </div>
                                 <div className='w-2/10 px-2 py-2 flex items-center justify-center'>
-                                    <button>
+                                    <button onClick={handleLogout}>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                                         </svg>
@@ -113,8 +136,8 @@ export default function Profile() {
                                 <Link to='/profile' className="!no-underline text-black text-sm">
                                     <li
                                         className={`h-10 flex items-center poppins-semibold !cursor-pointer 
-                                        hover:border-l-[2px] hover:bg-zinc-200 border-green-600 
-                                        ${active === 'user' ? 'border-green-600 bg-zinc-200 border-l-[2px]' : ''}`}
+                                        hover:border-l-[2px] hover:bg-zinc-200 border-black 
+                                        ${active === 'user' ? 'border-black bg-zinc-200 border-l-[2px]' : ''}`}
                                         onClick={() => activeNav('user')}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="mx-3 size-3">
@@ -127,8 +150,8 @@ export default function Profile() {
                                 <Link to='/profile/affiliate' className="!no-underline text-black text-sm">
                                     <li
                                         className={`h-10 flex items-center poppins-semibold !cursor-pointer 
-                                        hover:border-l-[2px] hover:bg-zinc-200 border-green-600 
-                                        ${active === 'affiliate' ? 'border-green-600 bg-zinc-200 border-l-[2px]' : ''}`}
+                                        hover:border-l-[2px] hover:bg-zinc-200 border-black 
+                                        ${active === 'affiliate' ? 'border-black bg-zinc-200 border-l-[2px]' : ''}`}
                                         onClick={() => activeNav('affiliate')}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="mx-3 size-3">
@@ -141,8 +164,8 @@ export default function Profile() {
                                 <Link to='/profile/setting' className="!no-underline text-black text-sm">
                                     <li
                                         className={`h-10 flex items-center poppins-semibold !cursor-pointer 
-                                        hover:border-l-[2px] hover:bg-zinc-200 border-green-600 
-                                        ${active === 'setting' ? 'border-green-600 bg-zinc-200 border-l-[2px]' : ''}`}
+                                        hover:border-l-[2px] hover:bg-zinc-200 border-black 
+                                        ${active === 'setting' ? 'border-black bg-zinc-200 border-l-[2px]' : ''}`}
                                         onClick={() => activeNav('setting')}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mx-3 size-3">
@@ -161,8 +184,8 @@ export default function Profile() {
 
             {/* Main content */}
             <div
-                className={`h-full transition-all duration-300 ease-in-out flex`}
-                style={{ width: hiddenMenu ? '100%' : '80%' }}
+                className={`h-full transition-all duration-300 ${hiddenMenu ? 'w-[100%]' : 'md:w-[80%] w-[100%]'} ease-in-out flex`}
+            // style={{ width: hiddenMenu ? '100%' : '80%' }}
             >
                 {hiddenMenu && (
                     <div className='w-10 h-full bg-mid text-white'>

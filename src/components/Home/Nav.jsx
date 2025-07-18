@@ -10,6 +10,7 @@ export default function Navbar() {
     const [searchOpen, setSearchOpen] = useState(false);
     const [isLogin, setIsLogin] = useState(false);
     const [showLoginPage, setShowLoginPage] = useState(false);
+    const [userInfo, setuseInfo] = useState([]);
 
     const location = useLocation();
     const isLoginPage = location.pathname === '/login' || location.pathname === '/signup';
@@ -33,6 +34,7 @@ export default function Navbar() {
                 });
                 if (res.status === 200) {
                     setIsLogin(true);
+                    setuseInfo(res.data.user);
                 }
             } catch (err) {
                 setIsLogin(false);
@@ -108,7 +110,11 @@ export default function Navbar() {
                             data-bs-custom-class="custom-tooltip"
                             data-bs-title="Profile"
                         >
+                            {userInfo.profile ?
+                            <img src={userInfo.profile} className='w-10 h-10 rounded-[50%]' alt="Profile" />:
                             <img src="./boy.png" className='w-10' alt="Profile" />
+                        }
+                            
                             <Link to='/profile' className="!no-underline ml-2">
                                 <button className='w-3 h-3 m-0'>
                                     <img src="./arrow-down.png" className='w-5 invert' alt="Arrow Down" />

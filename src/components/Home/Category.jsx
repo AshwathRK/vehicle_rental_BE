@@ -75,7 +75,7 @@ export default function Category() {
                 {categories.map((cat, idx) => (
                     <div
                         key={idx}
-                        className='category bg-white h-36 w-full sm:w-[48%] md:w-[22%] lg:w-[15%] rounded shadow flex flex-col items-center justify-center p-2 cursor-pointer hover:opacity-60'
+                        className='category bg-white h-36 w-full sm:w-[48%] md:w-[22%] lg:w-[15%] rounded hover:!border-[1px] hover:!border-[bg-zinc-500] flex flex-col items-center justify-center p-2 cursor-pointer'
                         onClick={() => navigateById(cat._id)}
                     >
                         <img src={cat.images[0]} alt={cat.category} className='h-20 w-20 object-contain' />

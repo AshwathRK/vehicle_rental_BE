@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { ClimbingBoxLoader } from 'react-spinners';
 
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 
@@ -9,6 +10,7 @@ export default function LogIn() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loadder, setLoadding] = useState(false)
 
     const navigate = useNavigate();
     // const dispatch = useDispatch();
@@ -18,6 +20,7 @@ export default function LogIn() {
     };
 
     const handleSubmit = async (event) => {
+        setLoadding(true)
         event.preventDefault();
         try {
             const response = await axios.post(
@@ -32,8 +35,8 @@ export default function LogIn() {
             sessionStorage.setItem('deviceId', response.data.deviceId);
             // sessionStorage.setItem('user', JSON.stringify(response.data.user));
             // dispatch(addUserDetails(response.data.user));
-            toast.success("Login successful!");
             navigate('/lineup');
+            setLoadding(false)
         } catch (error) {
             if (error.response) {
                 toast.error(error.response.data.message || "Login failed");
@@ -45,6 +48,14 @@ export default function LogIn() {
         setEmail('');
         setPassword('');
     };
+
+    if (loadder) {
+        return (
+            <div className="h-[calc(100vh-78.5px)] flex items-center text-white relative top-[78px] justify-center !p-4 bg-lower">
+                <ClimbingBoxLoader />
+            </div>
+        )
+    }
 
     return (
         <div className="h-[calc(100vh-78.5px)] flex items-center relative top-[78px] justify-center !p-4 bg-lower">
