@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import PrivateRoute from '../PrivateRoute';
 import axios from 'axios';
 import { ClimbingBoxLoader } from 'react-spinners';
+import CarInfo from './Profile/CarInfo';
 
 
 // === Load server URL from environment ===
@@ -21,6 +22,7 @@ export default function Profile() {
     };
 
     const [userInfo, setuseInfo] = useState([]);
+
 
     // Get tokens form the local storage
     const accessToken = sessionStorage.getItem('accessToken');
@@ -84,6 +86,7 @@ export default function Profile() {
         )
     }
 
+    // console.log(userInfo)
     return (
         <div className="h-[calc(99.8vh-78.4px)] bg-[#f5f7fa] flex relative top-[78px]">
             {/* Sidebar */}
@@ -115,11 +118,24 @@ export default function Profile() {
                             </div>
                             <div className='rounded w-[90%] h-[50%] bg-white border-[1px] border-[#d4d4d4] flex'>
                                 <div className='w-2/10 flex items-center justify-center'>
-                                    <img src={userInfo.profile} className='w-10 h-10 rounded' />
+                                    {userInfo.profile && userInfo.profile.length > 0 ? (
+                                        <div className='h-full w-full flex items-center'>
+                                            <img
+                                                src={userInfo?.profile}
+                                                alt="Profile"
+                                                className="w-52 h-[90%] rounded object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="h-full relative flex items-center justify-center">
+                                            <img src="./boy.png" alt="Profile" className="w-52 rounded border object-cover" />
+                                        </div>
+                                    )}
+
                                 </div>
                                 <div className='w-6/10 px-2 py-2'>
                                     <h6 className='m-0'>{userInfo.fullname?.charAt(0).toUpperCase() + userInfo.fullname?.slice(1)}</h6>
-                                    <p className='m-0 poppoins-semibold text-[#828181] !text-[0.8vw]'>{userInfo.isAdmin ? 'Admin' : (userInfo.isAffiliate ? 'Affiliate' : 'User')}</p>
+                                    <p className='m-0 poppoins-semibold text-[#828181] !text-[13px]'>{userInfo.profileType}</p>
                                 </div>
                                 <div className='w-2/10 px-2 py-2 flex items-center justify-center'>
                                     <button onClick={handleLogout}>
@@ -147,7 +163,7 @@ export default function Profile() {
                                     </li>
                                 </Link>
 
-                                <Link to='/profile/affiliate' className="!no-underline text-black text-sm">
+                                <Link to='/profile/affiliate' className={`!no-underline text-black text-sm`}>
                                     <li
                                         className={`h-10 flex items-center poppins-semibold !cursor-pointer 
                                         hover:border-l-[2px] hover:bg-zinc-200 border-black 
@@ -161,7 +177,21 @@ export default function Profile() {
                                     </li>
                                 </Link>
 
-                                <Link to='/profile/setting' className="!no-underline text-black text-sm">
+                                <Link to='/profile/carinfo' className={`!no-underline text-black text-sm ${userInfo.profileType === 'Admin' ? '' : userInfo.profileType === 'Affiliate'?'': '!hidden'}`}>
+                                    <li
+                                        className={`h-10 flex items-center poppins-semibold !cursor-pointer 
+                                        hover:border-l-[2px] hover:bg-zinc-200 border-black 
+                                        ${active === 'carInfo' ? 'border-black bg-zinc-200 border-l-[2px]' : ''}`}
+                                        onClick={() => activeNav('carInfo')}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mx-3 size-3">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                        </svg>
+                                        Car Info
+                                    </li>
+                                </Link>
+
+                                <Link to='/profile/setting' className={`!no-underline text-black text-sm ${userInfo.profileType === 'Admin' ? '' : '!hidden'}`}>
                                     <li
                                         className={`h-10 flex items-center poppins-semibold !cursor-pointer 
                                         hover:border-l-[2px] hover:bg-zinc-200 border-black 
@@ -175,7 +205,7 @@ export default function Profile() {
                                         Settings
                                     </li>
                                 </Link>
-                                
+
                             </ul>
 
                         </div>
@@ -214,8 +244,11 @@ export default function Profile() {
                         <Route path='/' element={
                             <UserDetails />
                         } />
-                        <Route path='affiliate' element={
+                        <Route path='affiliate/*' element={
                             <Affiliate />
+                        } />
+                        <Route path='carinfo/*' element={
+                            <CarInfo />
                         } />
                         <Route path='setting' element={
                             <Settings />

@@ -309,7 +309,7 @@ export default function Lineup() {
                 response?.data.forEach((car) => {
                     bookingIndices[car._id] = 0;
                 });
-                
+
                 setImageIndices((prev) => ({ ...prev, ...bookingIndices }));
                 setLoadder(false)
             } catch (error) {
@@ -341,13 +341,13 @@ export default function Lineup() {
         }));
     };
 
-    if(vehicleInfo.length===0){
-        return(
-            <div className='h-[calc(99.8vh-78.4px)] bg-[#f5f7fa] flex relative top-[78px] items-center justify-center'>
-                <ClimbingBoxLoader />
-            </div>
-        )
-    }
+    // if (vehicleInfo.length === 0) {
+    //     return (
+    //         <div className='h-[calc(99.8vh-78.4px)] bg-[#f5f7fa] flex relative top-[78px] items-center justify-center'>
+    //             <ClimbingBoxLoader />
+    //         </div>
+    //     )
+    // }
 
     // --- UI ---
     return (
@@ -540,7 +540,7 @@ export default function Lineup() {
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
                     </svg>}
 
-                        {/* <img src="./close.png" className='w-5 h-5 invert'/> */}
+                {/* <img src="./close.png" className='w-5 h-5 invert'/> */}
 
 
             </button>
@@ -592,78 +592,86 @@ export default function Lineup() {
                     </div>
                 </div>
                 {/* Content area */}
-                {loadder?
-                <div className='w-full h-[60vh] flex items-center justify-center'>
-                    <FadeLoader></FadeLoader>
-                </div>:
-                <div className={`w-full max-h-[80vh] absolute ${allFilters.length===0?`top-[300px]`:`top-[400px]`} lg:relative lg:top-auto hide-scrollbar overflow-y-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 p-4`}>
-                    
-                    {vehicleInfo.map((car, key) => {
-                        const images = car.images || [];
-                        const imageIndex = imageIndices[car._id] || 0;
-                        const imageData = images[imageIndex];
-                        const imageSrc = imageData
-                            ? `data:${imageData.contentType};base64,${imageData.data}`
-                            : './fallback.jpg';
-                        
-                        return (
-                            <div key={key} className="w-full max-w-[400px] h-auto border rounded shadow bg-white relative mx-auto">
-                                <div className="h-auto relative">
-                                    {/* === Car Image === */}
-                                    <img
-                                        src={imageSrc}
-                                        alt={`${car.make}-${car.model}`}
-                                        className="w-full h-[200px] object-cover rounded-t-md"
-                                    />
+                {loadder ?
+                    <div className='w-full h-[60vh] flex items-center justify-center'>
+                        <FadeLoader></FadeLoader>
+                    </div> :
+                    <div className={`w-full max-h-[80vh] absolute ${allFilters.length === 0 ? `top-[300px]` : `top-[400px]`} lg:relative lg:top-auto hide-scrollbar overflow-y-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 p-4`}>
+                        {
+                            vehicleInfo.length === 0 ? (
+                                <p>No data found for given filter, can you use other filter</p>
+                            ) : (
 
-                                    {/* === Image Navigation Buttons === */}
-                                    {images.length > 1 && (
-                                        <>
-                                            <button onClick={() => handlePrev(car._id, images.length)} className="absolute top-1/2 left-2 -translate-y-1/2 bg-black bg-opacity-40 p-1 rounded-full text-white hover:bg-opacity-70 z-10">
-                                                <ChevronLeft size={20} />
-                                            </button>
-                                            <button onClick={() => handleNext(car._id, images.length)} className="absolute top-1/2 right-2 -translate-y-1/2 bg-black bg-opacity-40 p-1 rounded-full text-white hover:bg-opacity-70 z-10">
-                                                <ChevronRight size={20} />
-                                            </button>
-                                        </>
-                                    )}
+                                vehicleInfo.map((car, key) => {
+                                    const images = car.images || [];
+                                    const imageIndex = imageIndices[car._id] || 0;
+                                    const imageData = images[imageIndex];
+                                    const imageSrc = imageData
+                                        ? `data:${imageData.contentType};base64,${imageData.data}`
+                                        : './fallback.jpg';
 
-                                    {/* === Overlay Info === */}
-                                    <div className="w-full h-20 absolute bottom-0 left-0 flex justify-between px-2 lg-grad">
-                                        <div className="h-full flex flex-col justify-center">
-                                            <h6 className="text-white poppins-semibold">{car.make} - {car.model}</h6>
-                                            <p className="text-white poppins-semibold text-[12px]">
-                                                {car.fuelType}. {car.transmission}. {car.seatingCapacity} Seats
-                                            </p>
+                                    return (
+                                        <div key={key} className="w-full max-w-[400px] h-auto border rounded shadow bg-white relative mx-auto">
+                                            <div className="h-auto relative">
+                                                {/* === Car Image === */}
+                                                <img
+                                                    src={imageSrc}
+                                                    alt={`${car.make}-${car.model}`}
+                                                    className="w-full h-[200px] object-cover rounded-t-md"
+                                                />
+
+                                                {/* === Image Navigation Buttons === */}
+                                                {images.length > 1 && (
+                                                    <>
+                                                        <button onClick={() => handlePrev(car._id, images.length)} className="absolute top-1/2 left-2 -translate-y-1/2 bg-black bg-opacity-40 p-1 rounded-full text-white hover:bg-opacity-70 z-10">
+                                                            <ChevronLeft size={20} />
+                                                        </button>
+                                                        <button onClick={() => handleNext(car._id, images.length)} className="absolute top-1/2 right-2 -translate-y-1/2 bg-black bg-opacity-40 p-1 rounded-full text-white hover:bg-opacity-70 z-10">
+                                                            <ChevronRight size={20} />
+                                                        </button>
+                                                    </>
+                                                )}
+
+                                                {/* === Overlay Info === */}
+                                                <div className="w-full h-20 absolute bottom-0 left-0 flex justify-between px-2 lg-grad">
+                                                    <div className="h-full flex flex-col justify-center">
+                                                        <h6 className="text-white poppins-semibold">{car.make} - {car.model}</h6>
+                                                        <p className="text-white poppins-semibold text-[12px]">
+                                                            {car.fuelType}. {car.transmission}. {car.seatingCapacity} Seats
+                                                        </p>
+                                                    </div>
+                                                    <div className="w-[120px] flex items-center">
+                                                        <img src="./reviewstar.png" className="w-4 mx-2" alt="review star" />
+                                                        <h6 className="text-white poppins-semibold m-0">
+                                                            Chosen by {car.bookingCount} renter{car.bookingCount !== 1 && 's'}
+                                                        </h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* === Pricing & Booking Button === */}
+                                            <div className="w-full px-2 py-3 flex items-center justify-between bg-white">
+                                                <div className="flex flex-col">
+                                                    <p className="text-sm m-0 poppins-bold mx-2">₹{car.pricePerDay} /day</p>
+                                                    {car.delivery && (
+                                                        <p className="text-sm m-0 poppins-bold flex items-center">
+                                                            <img src="./destination.png" className="w-3 h-3 mx-1" alt="Delivery" />
+                                                            Delivery available
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <button className="bg-primery text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
+                                                    Book Now
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="w-[120px] flex items-center">
-                                            <img src="./reviewstar.png" className="w-4 mx-2" alt="review star" />
-                                            <h6 className="text-white poppins-semibold m-0">
-                                                Chosen by {car.bookingCount} renter{car.bookingCount !== 1 && 's'}
-                                            </h6>
-                                        </div>
-                                    </div>
-                                </div>
+                                    );
+                                })
 
-                                {/* === Pricing & Booking Button === */}
-                                <div className="w-full px-2 py-3 flex items-center justify-between bg-white">
-                                    <div className="flex flex-col">
-                                        <p className="text-sm m-0 poppins-bold mx-2">₹{car.pricePerDay} /day</p>
-                                        {car.delivery && (
-                                            <p className="text-sm m-0 poppins-bold flex items-center">
-                                                <img src="./destination.png" className="w-3 h-3 mx-1" alt="Delivery" />
-                                                Delivery available
-                                            </p>
-                                        )}
-                                    </div>
-                                    <button className="bg-primery text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
-                                        Book Now
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            )
+                        }
+
+                    </div>
                 }
             </div>
         </div>

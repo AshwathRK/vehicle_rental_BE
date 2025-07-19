@@ -15,6 +15,8 @@ export default function UserDetails() {
         fullname: userInfo.fullname,
         firstName: '',
         lastName: '',
+        dateofbirth: '',
+        gender: '',
         email: '',
         phone: '',
         secondary: '',
@@ -37,6 +39,8 @@ export default function UserDetails() {
     // Get tokens form the local storage
     const accessToken = sessionStorage.getItem('accessToken');
     const deviceId = sessionStorage.getItem('deviceId');
+    const date = new Date(userInfo.dateofbirth);
+    const formattedDate = !isNaN(date.getTime()) ? date.toISOString().split('T')[0] : '';
 
 
     // ============================== Get user Info from the DB =============================== //
@@ -102,6 +106,8 @@ export default function UserDetails() {
             fullname: userInfo.fullname || '',
             firstName: userInfo.firstName || '',
             lastName: userInfo.lastName || '',
+            dateofbirth: userInfo.dateofbirth || '',
+            gender: userInfo.gender || '',
             email: userInfo.email || '',
             phone: userInfo.phone || '',
             secondary: userInfo.secondary || '',
@@ -263,6 +269,8 @@ export default function UserDetails() {
         )
     }
 
+
+
     return (
         <>
             <div className='w-full h-full flex items-center justify-center'>
@@ -281,15 +289,20 @@ export default function UserDetails() {
                         <div className='md:w-1/3 w-full h-full border-r md:border-r border-[#d4d4d4] px-4'>
                             <h6 className='poppins-requler h-10 flex items-center m-2'>Account Management</h6>
                             <div className='w-full h-60 flex justify-center relative mb-3'>
-                                {userInfo.profile ? (
+                                {userInfo?.profile && userInfo?.profile.length > 0 ? (
                                     <div>
-                                        <img src={userInfo.profile} alt="Profile" className='w-60 h-full rounded border object-cover' />
+                                        <img
+                                            src={userInfo?.profile}
+                                            alt="Profile"
+                                            className="w-60 h-full rounded border object-cover"
+                                        />
                                     </div>
                                 ) : (
-                                    <div className='h-full relative'>
-                                        <img src="./boy.png" alt="Profile" className='w-60 rounded border object-cover' />
+                                    <div className="h-full relative">
+                                        <img src="./boy.png" alt="Profile" className="w-60 rounded border object-cover" />
                                     </div>
                                 )}
+
                             </div>
                             <div className='w-full h-20 bg-[#f5f7fa] rounded flex items-center justify-center border'>
                                 <Button onClick={() => setModalOpen(true)} className='w-[90%] h-[65%] bg-white text-black !font-bold' variant="contained" disableElevation>
@@ -380,10 +393,35 @@ export default function UserDetails() {
                                         disabled={!isEditing} id='lastName' className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] ${!isEditing ? 'bg-zinc-100' : ''}`} autocomplete="off" />
                                 </div>
 
+                                {/*Date Of birth*/}
+                                <div className='w-[50%] px-2'>
+                                    <label htmlFor="dateofbirth" className='poppins-semibold text-sm my-2'>Date of birth</label>
+                                    <input type="date" value={formData.dateofbirth ? formData.dateofbirth : formattedDate}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing} id='dateofbirth' className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] ${!isEditing ? 'bg-zinc-100' : ''}`} autoComplete="off" />
+                                </div>
+
+                                {/* Gender */}
+                                <div className='w-[50%] px-2'>
+                                    <label htmlFor="gender" className='poppins-semibold text-sm my-2'>Gender</label>
+                                    <select
+                                        value={userInfo.gender}
+                                        onChange={handleInputChange}
+                                        disabled={!isEditing}
+                                        id='gender'
+                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] ${!isEditing ? 'bg-zinc-100' : ''}`}
+                                    >
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
                                 {/* Account Type */}
                                 <div className='w-[50%] px-2'>
                                     <label htmlFor="accounttype" className='poppins-semibold text-sm my-2'>Account Type</label>
-                                    <input type="input" id='accounttype' disabled value={userInfo?.isAdmin ? 'Admin' : (userInfo?.isAffiliate ? 'Affiliate' : 'User')} className='w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100' autocomplete="off" />
+                                    <input type="input" id='accounttype' disabled value={userInfo.profileType} className='w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100' autocomplete="off" />
                                 </div>
 
                             </div>

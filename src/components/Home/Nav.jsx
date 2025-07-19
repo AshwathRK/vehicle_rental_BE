@@ -15,7 +15,7 @@ export default function Navbar() {
     const location = useLocation();
     const isLoginPage = location.pathname === '/login' || location.pathname === '/signup';
     const isSearchPage = location.pathname === '/search';
-    const isProfilePage = location.pathname === '/profile/affiliate' || location.pathname === '/profile/setting' || location.pathname === '/profile'
+    const isProfilePage = location.pathname.startsWith('/profile');
     const isVehicles = location.pathname === '/lineup';
 
     // Get tokens form the local storage
@@ -110,11 +110,20 @@ export default function Navbar() {
                             data-bs-custom-class="custom-tooltip"
                             data-bs-title="Profile"
                         >
-                            {userInfo.profile ?
-                            <img src={userInfo.profile} className='w-10 h-10 rounded-[50%]' alt="Profile" />:
-                            <img src="./boy.png" className='w-10' alt="Profile" />
-                        }
-                            
+                            {userInfo.profile && userInfo.profile.length > 0 ? (
+                                <div>
+                                    <img
+                                        src={userInfo?.profile}
+                                        alt="Profile"
+                                        className="w-10 h-10 rounded-[50%] border object-cover"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="h-full relative flex items-center justify-center">
+                                    <img src="./boy.png" alt="Profile" className="w-10 rounded object-cover" />
+                                </div>
+                            )}
+
                             <Link to='/profile' className="!no-underline ml-2">
                                 <button className='w-3 h-3 m-0'>
                                     <img src="./arrow-down.png" className='w-5 invert' alt="Arrow Down" />

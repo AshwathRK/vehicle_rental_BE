@@ -1,9 +1,59 @@
-import React from 'react'
+import axios from 'axios';
+import React, { useEffect, useState } from 'react'
+import { Route, Routes } from 'react-router-dom';
+import AffiliateRegisterPage from './AffiliatePages/AffiliateRegisterPage';
+import Information from './AffiliatePages/Information';
+import Showcase from './AffiliatePages/Showcase';
+import { ClimbingBoxLoader } from 'react-spinners';
+import AffiliateInfo from './AffiliatePages/AffiliateInfo';
+import PrivateRoute from '../../PrivateRoute';
+
+
+// === Load server URL from environment ===
+const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 export default function Affiliate() {
+
+	const [userInfo, setuseInfo] = useState([]);
+	const [loadder, setLoadder] = useState(false)
+
+	// Get tokens form the local storage
+	const accessToken = sessionStorage.getItem('accessToken');
+	const deviceId = sessionStorage.getItem('deviceId');
+
+	useEffect(() => {
+		const checkAuth = async () => {
+			setLoadder(true)
+			try {
+				const res = await axios.get(`${serverUrl}`, {
+					withCredentials: true,
+					headers: {
+						'Authorization': `Bearer ${accessToken}`,
+						'Device-Id': deviceId
+					}
+				});
+
+				setuseInfo(res.data.user);
+				setLoadder(false)
+			} catch (err) {
+				console.log(err?.response?.data?.message || "Not logged in");
+				setLoadder(false)
+			}
+		};
+		checkAuth();
+	}, []);
+
+	if (loadder) {
+		return (
+			<div className='w-full h-full flex items-center justify-center'>
+				<ClimbingBoxLoader />
+			</div>
+		)
+	}
+
 	return (
 		<div className='w-full h-full flex items-center justify-center'>
-			<div className='h-[95%] w-[96%] bg-white border rounded'>
+			<div className='h-[98%] w-[96%] bg-white border rounded overflow-y-auto hide-scrollbar'>
 				<header className='w-full h-[10%] border-b border-[#d4d4d4] flex items-center'>
 					<div className='flex items-center'>
 						<div className='w-8 h-8 border flex items-center justify-center mx-3 rounded'>
@@ -15,8 +65,25 @@ export default function Affiliate() {
 					</div>
 				</header>
 				<div className='h-[90%] flex '>
-					
-					<div className='w-2/3 h-full'></div>
+					{
+						userInfo.profileType === 'Admin' ?
+							<Information /> :
+							userInfo.profileType === 'Affiliate' ? <AffiliateInfo /> :
+								<>
+									<Routes>
+										<Route element={<PrivateRoute />}>
+
+											<Route path='/' element={
+												<Showcase />
+											} />
+											<Route path='/affiliateregister/:id' element={
+												<AffiliateRegisterPage />
+											} />
+
+										</Route>
+									</Routes>
+								</>
+					}
 				</div>
 			</div>
 		</div>
