@@ -175,6 +175,7 @@ export default function Profile() {
                                         Settings
                                     </li>
                                 </Link>
+                                
                             </ul>
 
                         </div>
