@@ -88,26 +88,35 @@ export default function ListOfCars() {
 
     return (
         <div className="w-full h-full overflow-y-auto">
-            {loading ? (
-                <div className="w-full h-[80vh] flex justify-center items-center">
-                    <ClimbingBoxLoader color="#36d7b7" />
-                </div>
-            ) : (
-                <>
-                    <Box sx={{ width: '100%', typography: 'body1' }}>
-                        <TabContext value={value}>
-                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                <TabList onChange={handleChange} aria-label="lab API tabs example">
-                                    <Tab label="Approved" value="1" />
-                                    <Tab label="Not Approved" value="2" />
-                                </TabList>
-                            </Box>
-                            <TabPanel value="1">Item One</TabPanel>
-                            <TabPanel value="2">Item Two</TabPanel>
-                        </TabContext>
-                    </Box>
-                </>
-            )}
+
+            <>
+                <Box sx={{ width: '100%', typography: 'body1' }}>
+                    <TabContext value={value}>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <TabList onChange={handleChange} aria-label="lab API tabs example">
+                                <Tab label="Approved" value="1" />
+                                <Tab label="Not Approved" value="2" />
+                            </TabList>
+                        </Box>
+                        <TabPanel value="1">
+                            {loading ? (
+                                <div className="w-full h-[80vh] flex justify-center items-center">
+                                    <ClimbingBoxLoader color="#36d7b7" />
+                                </div>
+                            ) : (
+                                "Item One")}
+                        </TabPanel>
+                        <TabPanel value="2">
+                            {loading ? (
+                                <div className="w-full h-[80vh] flex justify-center items-center">
+                                    <ClimbingBoxLoader color="#36d7b7" />
+                                </div>
+                            ) : (
+                                "Item Two")}
+                        </TabPanel>
+                    </TabContext>
+                </Box>
+            </>
         </div>
 
     )
