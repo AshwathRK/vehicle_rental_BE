@@ -47,7 +47,6 @@ export default function ListOfCars() {
     };
 
     useEffect(() => {
-        debugger
         const getAffiliateAddedVehicleInfo = async () => {
             setLoading(true);
             try {
