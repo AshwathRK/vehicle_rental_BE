@@ -92,7 +92,6 @@ export default function Lineup() {
     // Catugory check
     useEffect(() => {
         if (!categoryId || categories.length === 0) return;
-
         const matchedCategory = categories.find(cat => cat._id === categoryId);
         if (matchedCategory) {
             setChecked((prev) => ({
@@ -100,6 +99,13 @@ export default function Lineup() {
                 categories: {
                     ...prev.categories,
                     [matchedCategory.category]: true
+                }
+            }));
+            setFilter((prev) => ({
+                ...prev,
+                categories: {
+                    ...prev.categories,
+                    [matchedCategory.category]: matchedCategory.category
                 }
             }));
         }
@@ -118,7 +124,6 @@ export default function Lineup() {
 
     const handleCheck = (event) => {
         const { name, checked: isChecked, dataset } = event.target;
-
         if (dataset.type === "category") {
             setChecked((prev) => ({
                 ...prev,
@@ -324,8 +329,6 @@ export default function Lineup() {
         value1,
         filter
     ]);
-
-    // console.log(vehicleInfo)
 
     const handlePrev = (id, length) => {
         setImageIndices((prev) => ({

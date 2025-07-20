@@ -52,7 +52,6 @@ export default function AffiliateRegisterPage() {
     };
 
     const handleSubmit = async () => {
-        debugger
         if (validateForm()) {
             try {
                 const response = await axios.put(`${serverUrl}/user/${id}`, formData, {

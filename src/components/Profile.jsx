@@ -86,7 +86,6 @@ export default function Profile() {
         )
     }
 
-    // console.log(userInfo)
     return (
         <div className="h-[calc(99.8vh-78.4px)] bg-[#f5f7fa] flex relative top-[78px]">
             {/* Sidebar */}
@@ -118,7 +117,7 @@ export default function Profile() {
                             </div>
                             <div className='rounded w-[90%] h-[50%] bg-white border-[1px] border-[#d4d4d4] flex'>
                                 <div className='w-2/10 flex items-center justify-center'>
-                                    {userInfo.profile && userInfo.profile.length > 0 ? (
+                                    {userInfo?.profile && userInfo?.profile?.length > 0 ? (
                                         <div className='h-full w-full flex items-center'>
                                             <img
                                                 src={userInfo?.profile}

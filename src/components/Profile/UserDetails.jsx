@@ -357,7 +357,6 @@ export default function UserDetails() {
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="green" class="size-6">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                         </svg>
-
                                     </button>
                                     <button onClick={handleCancel} className='mx-2'>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -498,7 +497,7 @@ export default function UserDetails() {
                         >
                             <h3 className="text-xl font-semibold mb-4 text-center">Select Image</h3>
 
-                            <input type="file" accept="image/*" onChange={handleBrowseImage} className="mb-4 w-full" />
+                            <input type="file" accept="image/*" onChange={handleBrowseImage} className="mb-4 w-full text-blue-400" />
 
                             {previewImage && (
                                 <div className="mb-4 flex justify-center">
