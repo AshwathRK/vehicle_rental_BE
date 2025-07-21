@@ -211,13 +211,12 @@ export default function UserDetails() {
             setFileToUpload(file); // store the actual file
         }
     };
-    // console.log(previewImage)
+    
 
     const handleUpload = async () => {
         try {
             const formImage = new FormData();
             formImage.append('profile', fileToUpload); // append the actual file
-
             const res = await axios.put(`${serverUrl}/updateprofile/${userInfo._id}`, formImage, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -513,7 +512,7 @@ export default function UserDetails() {
                                 <button
                                     onClick={handleUpload}
                                     disabled={!previewImage}
-                                    className={`px-4 py-2 rounded text-white ${previewImage ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                                    className={`px-4 py-2 rounded text-white mx-2 ${previewImage ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
                                 >
                                     Upload
                                 </button>
