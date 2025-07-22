@@ -10,6 +10,7 @@ import { ClimbingBoxLoader } from 'react-spinners';
 import Stack from '@mui/material/Stack';
 import { useNavigate } from 'react-router-dom';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { toast } from 'react-toastify';
 
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 
@@ -25,6 +26,7 @@ export default function AddCars() {
     const [modalOpen, setModalOpen] = useState(false);
     const [previewImages, setPreviewImages] = useState([]);
     // const [fileToUpload, setFileToUpload] = useState(null);
+    const [fileToUpload, setFileToUpload] = useState([]);
 
     const navigator = useNavigate()
     const [vehicleInfo, setVehicleInfo] = useState({
@@ -129,33 +131,53 @@ export default function AddCars() {
         setPreviewImages(null);
     };
 
-    const handleBrowseImages = (e) => {
-        const files = Array.from(e.target.files).slice(0, 5); // Limit to 5 images
-        const imagePreviews = files.map((file) => URL.createObjectURL(file));
-        setPreviewImages(imagePreviews);
-    };
-
     const handleUpload = async () => {
         setModalOpen(false);
     }
 
+
+    const handleBrowseImages = (e) => {
+        const files = Array.from(e.target.files).slice(0, 5);
+        const previews = files.map(file => URL.createObjectURL(file));
+        setPreviewImages(previews);
+        setFileToUpload(files); // ✅ Do NOT use `files` immediately here
+    };
+
+
     const handleSubmit = async () => {
-        debugger
-        if (validateForm()) {
-            try {
-                const responce = await axios.post(`${serverUrl}/vehicle`, { vehicleInfo, previewImages }, {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Device-Id': deviceId,
-                        'Content-Type': 'multipart/form-data'
-                    }  
-                })
-                console.log(responce)
-            } catch (error) {
-                console.log(error)
-            }
+        if (!validateForm()) return;
+        if (!fileToUpload.length) {
+            console.warn("No images selected");
+            return;
         }
-    }
+
+        const formImage = new FormData();
+
+        fileToUpload.forEach((file, index) => {
+            console.log("Appending file", index, file.name); // ✅ Must log
+            formImage.append('images', file); // ✅ Backend expects 'images'
+        });
+
+        formImage.append('vehicleInfo', JSON.stringify(vehicleInfo));
+
+        try {
+            const response = await axios.post(`${serverUrl}/vehicle`, formImage, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Device-Id': deviceId,
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            toast.success('The Vehicle has been created')
+            setTimeout(() => {
+                navigator('/profile/carinfo')
+            }, 2000);
+            console.log("Upload successful", response.data);
+        } catch (error) {
+            console.error("Upload failed", error);
+        }
+    };
 
     console.log(vehicleInfo)
     return (
@@ -190,7 +212,7 @@ export default function AddCars() {
                                                 <label htmlFor="model" className='poppins-semibold text-sm my-2'>Vehicle model</label>
                                                 <input type="input"
                                                     id='model' className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] ${errors.accountnumber ? 'border-red-500' : ''}`} autoComplete="off"
-                                                    placeholder='eg: Sonat' value={vehicleInfo.model} onChange={handleInputChange} />
+                                                    placeholder='eg: Sonet' value={vehicleInfo.model} onChange={handleInputChange} />
                                                 {errors.model && <p className='text-red-500 text-xs'>{errors.model}</p>}
                                             </div>
                                             <div className='px-2'>
@@ -286,8 +308,8 @@ export default function AddCars() {
                                                     value={vehicleInfo.airConditioning} onChange={handleInputChange}
                                                 >
                                                     <option value="" disabled>Select a transmisson</option>
-                                                    <option value="Manual">Available</option>
-                                                    <option value="Automatic">Not-Available</option>
+                                                    <option value="Available">Available</option>
+                                                    <option value="Not-Available">Not-Available</option>
                                                 </select>
                                                 {errors.airConditioning && <p className='text-red-500 text-xs'>{errors.airConditioning}</p>}
                                             </div>
@@ -300,9 +322,9 @@ export default function AddCars() {
                                                     value={vehicleInfo.luggageCapacity} onChange={handleInputChange}
                                                 >
                                                     <option value="" disabled>Select a transmisson</option>
-                                                    <option value="Manual">Small</option>
-                                                    <option value="Automatic">Medium</option>
-                                                    <option value="Automatic">Big</option>
+                                                    <option value="Small">Small</option>
+                                                    <option value="Medium">Medium</option>
+                                                    <option value="Large">Large</option>
                                                 </select>
                                                 {errors.luggageCapacity && <p className='text-red-500 text-xs'>{errors.luggageCapacity}</p>}
                                             </div>
@@ -381,7 +403,7 @@ export default function AddCars() {
                                                 >
                                                     <option value="" disabled>Select a transmisson</option>
                                                     <option value="Good">Good</option>
-                                                    <option value="NeedsService">Needs Service</option>
+                                                    <option value="Needs Service">Needs Service</option>
                                                     <option value="Damaged">Damaged</option>
 
                                                 </select>

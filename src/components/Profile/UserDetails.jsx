@@ -205,15 +205,18 @@ export default function UserDetails() {
     // ====================== Handle the profile image Upload ===========================//
 
     const handleBrowseImage = (event) => {
+        debugger
         if (event.target.files && event.target.files[0]) {
             const file = event.target.files[0];
             setPreviewImage(URL.createObjectURL(file));
-            setFileToUpload(file); // store the actual file
+            console.log(previewImage)
+            setFileToUpload(file);
         }
     };
     
 
     const handleUpload = async () => {
+        debugger
         try {
             const formImage = new FormData();
             formImage.append('profile', fileToUpload); // append the actual file

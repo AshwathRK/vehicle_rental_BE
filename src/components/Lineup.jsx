@@ -599,7 +599,7 @@ export default function Lineup() {
                     <div className='w-full h-[60vh] flex items-center justify-center'>
                         <FadeLoader></FadeLoader>
                     </div> :
-                    <div className={`w-full max-h-[80vh] absolute ${allFilters.length === 0 ? `top-[300px]` : `top-[400px]`} lg:relative lg:top-auto hide-scrollbar overflow-y-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 p-4`}>
+                    <div className={`w-full max-h-[564px] absolute ${allFilters.length === 0 ? `top-[300px]` : `top-[400px]`} lg:relative lg:top-auto hide-scrollbar overflow-y-auto scrollbar-thin scrollbar-thumb-mid scrollbar-track-gray-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 p-4`}>
                         {
                             vehicleInfo.length === 0 ? (
                                 <p>No data found for given filter, can you use other filter</p>
