@@ -8,13 +8,15 @@ import TabPanel from '@mui/lab/TabPanel';
 import axios from 'axios';
 import { ClimbingBoxLoader } from 'react-spinners';
 import Stack from '@mui/material/Stack';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { toast } from 'react-toastify';
 
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 export default function AddCars() {
+    const { id } = useParams();
+    const [isEditing, setIsEditing] = useState(false)
     const [value, setValue] = React.useState('1');
     const [categories, getCategories] = useState([])
     const [loadder, setLoadder] = useState(false)
@@ -23,9 +25,9 @@ export default function AddCars() {
     const accessToken = sessionStorage.getItem('accessToken');
     const deviceId = sessionStorage.getItem('deviceId');
 
+    const [errors, setErrors] = useState({});
     const [modalOpen, setModalOpen] = useState(false);
     const [previewImages, setPreviewImages] = useState([]);
-    // const [fileToUpload, setFileToUpload] = useState(null);
     const [fileToUpload, setFileToUpload] = useState([]);
 
     const navigator = useNavigate()
@@ -61,24 +63,27 @@ export default function AddCars() {
         weekdiscount: '',
         monthlydiscount: '',
     });
+    const [editVehicle, setEditVehicle] = useState({})
 
+    // Command: event change for tab slide 
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
 
+    // Command: event change for tab all inout fields
     const handleInputChange = (e) => {
         const { id, value } = e.target;
         console.log(id, value)
         setVehicleInfo((prevInfo) => ({ ...prevInfo, [id]: value }));
     };
 
+    // Command: Fetch the categories in the DB
     useEffect(() => {
         const fetchAllCategory = async () => {
             setLoadder(true)
             try {
                 const response = await axios.get(`${serverUrl}/categories`)
                 getCategories(response.data.responce)
-                // console.log(response.data.responce)
                 setLoadder(false)
             } catch (error) {
                 console.log(error)
@@ -88,12 +93,12 @@ export default function AddCars() {
         fetchAllCategory()
     }, [])
 
+    // Command: Handle the cancel button for the page cancel
     const handleCancel = () => {
         navigator('/profile/carinfo')
     }
 
-    const [errors, setErrors] = useState({});
-
+    // Command: Validation for required input fields
     const validateForm = () => {
         const newErrors = {};
         if (!vehicleInfo.make) newErrors.make = 'Vehicle brand is required';
@@ -126,36 +131,38 @@ export default function AddCars() {
         return Object.keys(newErrors).length === 0;
     }
 
+    // Command: Handle the cancel button for the Model page
     const handleCloseModal = () => {
         setModalOpen(false);
         setPreviewImages(null);
     };
 
+    // Command: Handle the update button from the model popup
     const handleUpload = async () => {
         setModalOpen(false);
     }
 
-
+    // Command: Handle the images and store the data in State
     const handleBrowseImages = (e) => {
         const files = Array.from(e.target.files).slice(0, 5);
         const previews = files.map(file => URL.createObjectURL(file));
         setPreviewImages(previews);
-        setFileToUpload(files); // ✅ Do NOT use `files` immediately here
+        setFileToUpload(files);
     };
 
-
+    // Command: Handle the form submit
     const handleSubmit = async () => {
         if (!validateForm()) return;
+
         if (!fileToUpload.length) {
             console.warn("No images selected");
             return;
         }
 
         const formImage = new FormData();
-
         fileToUpload.forEach((file, index) => {
-            console.log("Appending file", index, file.name); // ✅ Must log
-            formImage.append('images', file); // ✅ Backend expects 'images'
+            console.log("Appending file", index, file.name);
+            formImage.append('images', file);
         });
 
         formImage.append('vehicleInfo', JSON.stringify(vehicleInfo));
@@ -168,18 +175,97 @@ export default function AddCars() {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-
             toast.success('The Vehicle has been created')
             setTimeout(() => {
                 navigator('/profile/carinfo')
             }, 2000);
-            console.log("Upload successful", response.data);
+
         } catch (error) {
             console.error("Upload failed", error);
         }
     };
 
-    console.log(vehicleInfo)
+    // Command: Get the vehicle information form the BD based in the ID
+    useEffect(() => {
+        setLoadder(true)
+        const fetchVehicleInfo = async () => {
+            try {
+                const response = await axios.get(`${serverUrl}/vehicle/${id}`)
+                setEditVehicle(response.data)
+                // console.log(response)
+                setLoadder(false)
+            } catch (error) {
+                console.log(error)
+                setLoadder(false)
+            }
+        }
+        fetchVehicleInfo()
+    }, [])
+
+    // Command: Assign the value form the setValueInfo
+    useEffect(() => {
+        // debugger
+
+        const formatDate = (isoDate) => {
+            const date = new Date(isoDate);
+            const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+            return formattedDate
+        }
+
+        const findCategories = (id) => {
+            const match = categories.find(value => {
+                return value._id == id;
+            });
+            return match?.category || '';
+        };
+
+
+        setVehicleInfo({
+            make: editVehicle?.make || '',
+            model: editVehicle?.model || '',
+            registerModel: editVehicle?.year || '',
+            category: findCategories(editVehicle?.category) || '',
+            registerNumber: editVehicle?.licensePlate || '',
+            transmission: editVehicle?.transmission || '',
+            fuelType: editVehicle?.fuelType || '',
+            mileage: editVehicle?.mileage || '',
+            seatingCapacity: editVehicle?.seatingCapacity || '',
+            numberOfDoors: editVehicle?.numberOfDoors || '',
+            airConditioning: editVehicle?.airConditioning ? "Available" : "Not-Available" || '',
+            luggageCapacity: editVehicle?.luggageCapacity || '',
+            insuranceType: editVehicle?.insurance?.type || '',
+            provider: editVehicle?.insurance?.provider || '',
+            expiryDate: formatDate(editVehicle?.insurance?.expiryDate) || '',
+            minLicense: editVehicle?.driverRequirements?.licenseType || '',
+            minage: editVehicle?.driverRequirements?.minAge || '',
+            lastServiced: formatDate(editVehicle?.maintenance?.lastServiced) || '',
+            nextServiceDue: formatDate(editVehicle?.maintenance?.nextServiceDue) || '',
+            vehicleCondition: editVehicle?.maintenance?.condition || '',
+            odometerReading: editVehicle?.maintenance?.odometerReading || '',
+            pickup: editVehicle?.location?.pickup || '',
+            drop: editVehicle?.location?.dropoff || '',
+            city: editVehicle?.location?.city || '',
+            doorDelivery: editVehicle.delivery || '',
+            fuelPolicy: editVehicle.fuelPolicy || '',
+            pricePerHour: editVehicle.pricePerHour || '',
+            pricePerDay: editVehicle.pricePerDay || '',
+            weekdiscount: editVehicle?.discounts?.weekly || '',
+            monthlydiscount: editVehicle?.discounts?.monthly || '',
+        })
+
+        const previewImages = editVehicle?.images?.map((img) => {
+            return `data:${img.contentType};base64,${img.data}`;
+        }) || [];
+        setPreviewImages(previewImages);
+
+        // console.log(editVehicle?.category)
+
+    }, [editVehicle])
+
+    const handleEditedValues = () => {
+
+    }
+    // console.log(vehicleInfo)
     return (
         <div className='w-full h-full'>
             <>
@@ -192,7 +278,7 @@ export default function AddCars() {
                             <TabContext value={value}>
                                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                     <TabList onChange={handleChange} aria-label="lab API tabs example">
-                                        <Tab label="Add New Car" value="1" />
+                                        <Tab label={id ? 'Update Car' : 'Add New Car'} value="1" />
                                     </TabList>
                                 </Box>
 
@@ -529,7 +615,7 @@ export default function AddCars() {
                                                 startIcon={<CloudUploadIcon />}
                                                 onClick={() => setModalOpen(true)}
                                             >
-                                                Upload files
+                                                {id ? 'Update files' : 'Upload files'}
                                             </Button>
                                             {previewImages && previewImages.length > 0 && (
                                                 <div className="mb-4 flex flex-wrap justify-center gap-2">
@@ -548,9 +634,16 @@ export default function AddCars() {
                                         <div className='w-full h-20 flex items-center justify-end px-4'>
                                             <Stack direction="row" spacing={2}>
                                                 <Button onClick={handleCancel} color="secondary">Cancel</Button>
-                                                <Button onClick={handleSubmit} variant="contained" color="success">
-                                                    Submit
-                                                </Button>
+                                                {
+                                                    !id ?
+                                                        <Button onClick={handleSubmit} variant="contained" color="success">
+                                                            Submit
+                                                        </Button> :
+                                                        <Button onClick={handleEditedValues} variant="contained" color="success">
+                                                            Update
+                                                        </Button>
+                                                }
+
                                             </Stack>
                                         </div>
                                     </div>

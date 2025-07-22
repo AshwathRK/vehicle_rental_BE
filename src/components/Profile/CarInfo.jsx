@@ -9,7 +9,7 @@ import PrivateRoute from '../../PrivateRoute';
 
 export default function CarInfo() {
     const location = useLocation();
-    const addcarsPage = location.pathname === '/profile/carinfo/addcars'
+    const isAddOrEditCarPage = location.pathname.startsWith('/profile/carinfo/editcar') || location.pathname === '/profile/carinfo/addcars';
     return (
         <div className='w-full h-full flex items-center justify-center'>
             <div className='h-[95%] w-[96%] bg-white border rounded'>
@@ -25,7 +25,7 @@ export default function CarInfo() {
                         </section>
 
                         {
-                            !addcarsPage && (
+                            !isAddOrEditCarPage && (
                                 <Link to='/profile/carinfo/addcars' className='!no-underline m-0'>
                                     <Stack className="md:mx-5 mx-2 flex !px-0" direction="row" spacing={2}>
                                         <Button variant="contained" color="success" className="flex items-center gap-1">
@@ -48,6 +48,9 @@ export default function CarInfo() {
                                 <ListOfCars />
                             } />
                             <Route path='addcars' element={
+                                <AddCars />
+                            } />
+                            <Route path='editcar/:id' element={
                                 <AddCars />
                             } />
                         </Route>
