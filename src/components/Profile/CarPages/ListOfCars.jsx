@@ -63,7 +63,6 @@ export default function ListOfCars() {
                     else if (value === "3") {
                         try {
                             const responseValue = await axios.get(`${serverUrl}/affiliate/${userId}`);
-                            console.log(responseValue)
                             response = responseValue?.data
                         } catch (error) {
                             console.log(error)
@@ -145,9 +144,11 @@ export default function ListOfCars() {
                                         </Button>
                                     </Link>
                                     {value.isAdminApproved ? (
-                                        <Button variant="outlined">
-                                            Booking Details
-                                        </Button>
+                                        <Link to={`/profile/carinfo/carriview/${value._id}`}>
+                                            <Button variant="outlined">
+                                                Booking Details
+                                            </Button>
+                                        </Link>
                                     ) : (
                                         ''
                                     )}
@@ -160,7 +161,7 @@ export default function ListOfCars() {
         )
     }
 
-    console.log(vehicleInfo)
+    // console.log(vehicleInfo)
 
     if (userInfo.profileType === 'Admin') {
         return (
@@ -209,7 +210,9 @@ export default function ListOfCars() {
                                                 </div>
 
                                                 <div className="md:w-2/12 w-full text-center px-2">
-                                                    <a href="#" className="text-blue-500 underline text-sm">More Info</a>
+                                                    <Link to={`/profile/carinfo/carriview/${value._id}`} >
+                                                            <Button className="text-blue-500 underline text-sm">More Details</Button>
+                                                        </Link>
                                                 </div>
                                             </div>
                                         ))}
@@ -254,7 +257,9 @@ export default function ListOfCars() {
                                                     </div>
 
                                                     <div className="md:w-2/12 w-full text-center px-2">
-                                                        <a href="#" className="text-blue-500 underline text-sm">Review</a>
+                                                        <Link to={`/profile/carinfo/carriview/${value._id}`} >
+                                                            <Button className="text-blue-500 underline text-sm">Review</Button>
+                                                        </Link>
                                                     </div>
                                                 </div>
                                             ))
@@ -309,16 +314,18 @@ export default function ListOfCars() {
                                                 </div>
 
                                                 {/* Edit Link */}
-                                                <div className="md:w-2/12 w-full text-center px-2 flex flex-col">
+                                                <div className="md:w-2/12 w-full text-center px-2 flex">
                                                     <Link to={`/profile/carinfo/editcar/${value._id}`} className='w-full'>
-                                                        <Button variant="outlined" className='my-2'>
+                                                        <Button className='my-2'>
                                                             Edit
                                                         </Button>
                                                     </Link>
                                                     {value.isAdminApproved ? (
-                                                        <Button variant="outlined">
-                                                            Booking Details
-                                                        </Button>
+                                                        <Link to={`/profile/carinfo/carriview/${value._id}`}>
+                                                            <Button>
+                                                                More Details
+                                                            </Button>
+                                                        </Link>
                                                     ) : (
                                                         ''
                                                     )}

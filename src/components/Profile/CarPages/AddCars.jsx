@@ -16,7 +16,6 @@ const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 export default function AddCars() {
     const { id } = useParams();
-    const [isEditing, setIsEditing] = useState(false)
     const [value, setValue] = React.useState('1');
     const [categories, getCategories] = useState([])
     const [loadder, setLoadder] = useState(false)
@@ -80,10 +79,12 @@ export default function AddCars() {
     // Command: Fetch the categories in the DB
     useEffect(() => {
         const fetchAllCategory = async () => {
+            // console.log("Fetching categories for ID:", id);
             setLoadder(true)
             try {
                 const response = await axios.get(`${serverUrl}/categories`)
                 getCategories(response.data.responce)
+                // console.log(response.data.responce)
                 setLoadder(false)
             } catch (error) {
                 console.log(error)
@@ -91,7 +92,7 @@ export default function AddCars() {
 
         }
         fetchAllCategory()
-    }, [])
+    }, [id])
 
     // Command: Handle the cancel button for the page cancel
     const handleCancel = () => {
@@ -192,7 +193,6 @@ export default function AddCars() {
             try {
                 const response = await axios.get(`${serverUrl}/vehicle/${id}`)
                 setEditVehicle(response.data)
-                // console.log(response)
                 setLoadder(false)
             } catch (error) {
                 console.log(error)
@@ -205,26 +205,17 @@ export default function AddCars() {
     // Command: Assign the value form the setValueInfo
     useEffect(() => {
         // debugger
-
         const formatDate = (isoDate) => {
             const date = new Date(isoDate);
             const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
             return formattedDate
         }
 
-        const findCategories = (id) => {
-            const match = categories.find(value => {
-                return value._id == id;
-            });
-            return match?.category || '';
-        };
-
-
         setVehicleInfo({
             make: editVehicle?.make || '',
             model: editVehicle?.model || '',
             registerModel: editVehicle?.year || '',
-            category: findCategories(editVehicle?.category) || '',
+            category: editVehicle?.category || '',
             registerNumber: editVehicle?.licensePlate || '',
             transmission: editVehicle?.transmission || '',
             fuelType: editVehicle?.fuelType || '',
@@ -258,14 +249,43 @@ export default function AddCars() {
         }) || [];
         setPreviewImages(previewImages);
 
-        // console.log(editVehicle?.category)
-
     }, [editVehicle])
 
-    const handleEditedValues = () => {
+    const handleEditedValues = async () => {
+        debugger
+        if (!validateForm()) return;
 
+        // if (!fileToUpload.length) {
+        //     console.warn("No images selected");
+        //     return;
+        // }
+
+        const formImage = new FormData();
+        fileToUpload?.forEach((file, index) => {
+            console.log("Appending file", index, file.name);
+            formImage.append('images', file);
+        });
+
+        formImage.append('vehicleInfo', JSON.stringify(vehicleInfo));
+
+        try {
+            const response = await axios.put(`${serverUrl}/vehicle/${id}`, formImage, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Device-Id': deviceId,
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            toast.success('The Vehicle has been created')
+            setTimeout(() => {
+                navigator('/profile/carinfo')
+            }, 2000);
+
+        } catch (error) {
+            console.error("Upload failed", error);
+        }
     }
-    // console.log(vehicleInfo)
+    console.log(vehicleInfo.category)
     return (
         <div className='w-full h-full'>
             <>
@@ -314,7 +334,9 @@ export default function AddCars() {
                                                     id='category'
                                                     className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] text-black ${errors.accountnumber ? 'border-red-500' : ''}`}
                                                     defaultValue=""
-                                                    value={vehicleInfo.category} onChange={handleInputChange}
+                                                    value={
+                                                        vehicleInfo.category
+                                                    } onChange={handleInputChange}
                                                 >
                                                     <option value="" disabled>Select a category</option>
                                                     {

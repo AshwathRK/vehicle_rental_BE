@@ -6,6 +6,7 @@ import AddCars from './CarPages/AddCars';
 import { Link, useLocation } from 'react-router-dom';
 import { Route, Routes } from 'react-router-dom';
 import PrivateRoute from '../../PrivateRoute';
+import CarRiview from './CarPages/CarRiview';
 
 export default function CarInfo() {
     const location = useLocation();
@@ -52,6 +53,9 @@ export default function CarInfo() {
                             } />
                             <Route path='editcar/:id' element={
                                 <AddCars />
+                            } />
+                            <Route path='carriview/:id' element={
+                                <CarRiview />
                             } />
                         </Route>
                     </Routes>
