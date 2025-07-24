@@ -11,6 +11,7 @@ import Signup from './components/Signup';
 import Search from './components/SearchPage';
 import Profile from './components/Profile';
 import PrivateRoute from './PrivateRoute';
+import DetailedCarInfo from './components/DetailedCarInfo';
 
 export default function App() {
     return (
@@ -44,6 +45,11 @@ export default function App() {
                 <Route path="/search" element={
                     <>
                         <Search />
+                    </>
+                } />
+                <Route path="/car/:id" element={
+                    <>
+                        <DetailedCarInfo />
                     </>
                 } />
                 <Route element={<PrivateRoute />}>

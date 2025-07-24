@@ -292,7 +292,7 @@ export default function AddCars() {
                 {
                     loadder ?
                         <div className='h-[40vw] w-full flex items-center justify-center'>
-                            <ClimbingBoxLoader color="#36d7b7" />
+                            <ClimbingBoxLoader />
                         </div> :
                         <Box sx={{ width: '100%', typography: 'body1' }}>
                             <TabContext value={value}>

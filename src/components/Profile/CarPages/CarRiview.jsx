@@ -26,10 +26,12 @@ export default function CarRiview() {
     };
 
     useEffect(() => {
+        // debugger
         setLoadding(true);
         const getVehicleInformation = async () => {
             try {
                 const response = await axios.get(`${serverUrl}/vehicle/${id}`);
+                console.log(response.data)
                 setVehicleInfo(response.data);
             } catch (error) {
                 console.log(error);
@@ -41,7 +43,6 @@ export default function CarRiview() {
     }, []);
 
     useEffect(() => {
-        // debugger
         const getTheCategoryById = async () => {
             if (!vehicleInfo?.category) return;
             try {
@@ -64,7 +65,7 @@ export default function CarRiview() {
     };
 
     const handleApprove = () => {
-        // Approval logic
+        
     };
 
     // ✅ Combine loader & data check here
@@ -78,7 +79,20 @@ export default function CarRiview() {
 
     const currentImage = vehicleInfo.images[currentIndex];
 
-    console.log(vehicleInfo.averageRating)
+    const formatADate = (isoDate) => {
+        const date = new Date(isoDate);
+        const formattedDate = `${String(date.getDate()).padStart(2, '0')
+            }-${String(date.getMonth() + 1).padStart(2, '0')
+            }-${date.getFullYear()
+            }`;
+
+        return formattedDate
+    }
+
+
+    if (vehicleInfo) {
+        console.log()
+    }
 
     return (
         <div className='flex w-full h-full'>
@@ -117,7 +131,11 @@ export default function CarRiview() {
                 </div>
                 <div className='h-[200px] w-full flex flex-col'>
                     <Button disabled={vehicleInfo.isAdminApproved} onClick={handleApprove} className='w-full my-2' variant="contained" color="success">Approve</Button>
-                    <Button className='w-full my-2' variant="outlined" color="danger">Delete</Button>
+                    {
+                        vehicleInfo.isAdminApproved?
+                        <Button className='w-full my-2' variant="outlined" color="danger">Disable</Button>:
+                        <Button className='w-full my-2' variant="outlined" color="danger">Delete</Button>
+                    }
                 </div>
             </div>
             <div className='w-8/12'>
@@ -126,41 +144,141 @@ export default function CarRiview() {
                         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                             <TabList onChange={handleChange} aria-label="lab API tabs example">
                                 <Tab label="Information" value="1" />
-                                <Tab label="History" value="2" />
+                                {
+                                    vehicleInfo.isAdminApproved?
+                                    <Tab label="History" value="2" />: ''
+                                }
                             </TabList>
                         </Box>
                         <TabPanel className="h-[calc(95.5vh-200px)] p-2 overflow-y-auto" value="1">
                             <div className='w-full h-full p-4'>
                                 <h4 className='poppins-bold !text-[30px]'>{`${vehicleInfo.make}-${vehicleInfo.model}`}</h4>
+                                <p className='poppins-semibold !text-[20px] mb-2'>{`₹ ${vehicleInfo.pricePerHour} / hour (₹ ${vehicleInfo.pricePerDay} / day)`}</p>
                                 <p className='poppins-reguler !text-[15px] mb-2'>{`${vehicleInfo.fuelType}.${vehicleInfo.transmission}.${vehicelCategory}`}</p>
                                 <p className='poppins-reguler !text-[15px] m-0 flex'>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="black" className="size-5 mr-2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
                                     </svg>
-                                    {vehicleInfo?.averageRating}
-                                {/* 4.8 */}
+                                    {`${vehicleInfo?.averageRating.toFixed(2)} (${vehicleInfo?.reviewCount})`}
+                                    {/* 4.8 */}
                                 </p>
-                                <div className='py-4'>
+                                <hr className='border-b border-[#d4d4d4]' />
+                                <div className='pb-4'>
                                     <h6 className='poppins-semibold !text-[18px] my-3'>{`Basic Information`}</h6>
-                                    <div className='w-full grid grid-cols-3 gap-3'>
+                                    <div className='w-full grid grid-cols-3 gap-3 border-b border-[#d4d4d4] pb-4'>
                                         <div>
                                             <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Vehicle Register Year</label>
                                             <input type="text" name="newPassword" value={vehicleInfo.year} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
                                         </div>
 
                                         <div>
-                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Vehicle Register Year</label>
-                                            <input type="text" name="newPassword" value={vehicleInfo.year} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Odometer Value</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.maintenance.odometerReading} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
                                         </div>
 
                                         <div >
-                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Vehicle Register Year</label>
-                                            <input type="text" name="newPassword" value={vehicleInfo.year} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Kilometers per Liter (km/l)</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.mileage} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
                                         </div>
 
                                         <div>
-                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Vehicle Register Year</label>
-                                            <input type="text" name="newPassword" value={vehicleInfo.year} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>seats</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.seatingCapacity} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Total Doors</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.numberOfDoors} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Luggage Capacity</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.luggageCapacity} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>AC Available</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.airConditioning ? 'Available' : 'Not-available'} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+                                    </div>
+
+                                    <h6 className='poppins-semibold !text-[18px] my-3'>Maintenance Information</h6>
+                                    <div className='w-full grid grid-cols-3 gap-3 border-b border-[#d4d4d4] pb-4'>
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Last Serviced</label>
+                                            <input type="text" name="newPassword" value={formatADate(vehicleInfo.maintenance?.lastServiced)} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Next Service Due</label>
+                                            <input type="text" name="newPassword" value={formatADate(vehicleInfo.maintenance.nextServiceDue)} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div >
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Condition</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.maintenance?.condition} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        {/* Insuranse Information */}
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Insurance Type</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.insurance?.type} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Insurance Provider</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.insurance.provider} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div >
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Insurance ExpiryDate</label>
+                                            <input type="text" name="newPassword" value={formatADate(vehicleInfo.insurance?.expiryDate)} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+                                    </div>
+
+                                    <h6 className='poppins-semibold !text-[18px] my-3'>Booking Details</h6>
+                                    <div className='w-full grid grid-cols-3 gap-3 border-b border-[#d4d4d4] pb-4'>
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Vehicle Pickup location</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.location?.pickup} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Vehicle Drop location</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.location?.dropoff} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div >
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>City</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.location?.city} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Fuel Policy</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.fuelPolicy} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Weekly Discount %</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.discounts?.weekly} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div >
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Monthly Discount %</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.discounts?.monthly} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+                                    </div>
+
+                                    <h6 className='poppins-semibold !text-[18px] my-3'>Requirements</h6>
+                                    <div className='w-full grid grid-cols-3 gap-3 border-b border-[#d4d4d4] pb-4'>
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Driver Minmum age</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.driverRequirements?.minAge} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Basic driver license type</label>
+                                            <input type="text" name="newPassword" value={vehicleInfo.driverRequirements?.licenseType} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
                                         </div>
                                     </div>
                                 </div>

@@ -2,6 +2,8 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 
 // MUI Components
 import Accordion from '@mui/material/Accordion';
@@ -11,7 +13,7 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ClimbingBoxLoader, FadeLoader } from 'react-spinners';
 
@@ -353,6 +355,7 @@ export default function Lineup() {
     // }
 
     // --- UI ---
+
     return (
         <div className="lg:h-[calc(99.8vh-78.4px)] relative top-[78px] h-screen flex flex-col lg:flex-row">
             {/* --- Left Sidebar: Filters --- */}
@@ -636,7 +639,7 @@ export default function Lineup() {
                                                 )}
 
                                                 {/* === Overlay Info === */}
-                                                <div className="w-full h-20 absolute bottom-0 left-0 flex justify-between px-2 lg-grad">
+                                                <div className="w-full h-15 absolute bottom-0 left-0 flex items-center justify-between px-2 lg-grad">
                                                     <div className="h-full flex flex-col justify-center">
                                                         <h6 className="text-white poppins-semibold">{car.make} - {car.model}</h6>
                                                         <p className="text-white poppins-semibold text-[12px]">
@@ -653,7 +656,7 @@ export default function Lineup() {
                                             </div>
 
                                             {/* === Pricing & Booking Button === */}
-                                            <div className="w-full px-2 py-3 flex items-center justify-between bg-white">
+                                            <div className="w-full px-2 py-3 flex items-center justify-between rounded bg-white">
                                                 <div className="flex flex-col">
                                                     <p className="text-sm m-0 poppins-bold mx-2">₹{car.pricePerDay} /day</p>
                                                     {car.delivery && (
@@ -663,9 +666,14 @@ export default function Lineup() {
                                                         </p>
                                                     )}
                                                 </div>
-                                                <button className="bg-primery text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
-                                                    Book Now
-                                                </button>
+                                                <Link to={`/car/${car._id}`}>
+                                                    <Button variant="outlined" color='success' className="py-1">
+                                                        Get more info
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-4 ml-2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                                        </svg>
+                                                    </Button>
+                                                </Link>
                                             </div>
                                         </div>
                                     );
