@@ -26,7 +26,6 @@ export default function CarRiview() {
     };
 
     useEffect(() => {
-        // debugger
         setLoadding(true);
         const getVehicleInformation = async () => {
             try {

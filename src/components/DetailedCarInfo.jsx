@@ -2,6 +2,8 @@ import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { ClimbingBoxLoader } from 'react-spinners';
+import Rating from '@mui/material/Rating';
+import Stack from '@mui/material/Stack';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -111,7 +113,7 @@ export default function DetailedCarInfo() {
                         )}
                     </div>
                 </div>
-                <div className='w-7/10  gb-lower px-20 h-full flex'>
+                <div className='w-7/10  gb-lower px-20 h-full flex flex-col'>
                     <div className='w-full h-[100px] flex border-b border-[#d4d4d4]'>
                         <div className='w-1/2'>
                             <h6 className='flex items-center mb30 !text-[13px] !text-[#7a7a7a] poppins-reguler'>
@@ -132,20 +134,41 @@ export default function DetailedCarInfo() {
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="size-4 mx-1">
                                             <path fill-rule="evenodd" d="M8 1.75a.75.75 0 0 1 .692.462l1.41 3.393 3.664.293a.75.75 0 0 1 .428 1.317l-2.791 2.39.853 3.575a.75.75 0 0 1-1.12.814L7.998 12.08l-3.135 1.915a.75.75 0 0 1-1.12-.814l.852-3.574-2.79-2.39a.75.75 0 0 1 .427-1.318l3.663-.293 1.41-3.393A.75.75 0 0 1 8 1.75Z" clip-rule="evenodd" />
                                         </svg>
-                                        {`${vehicleInfo?.averageRating} (${vehicleInfo?.reviewCount})`}</h6>
+                                        {`${vehicleInfo?.averageRating.toFixed(2)} (${vehicleInfo?.reviewCount})`}</h6>
                                 </div>
                                 <div className='w-full h-1/2 border !border-[#06923E] rounded-b-xl flex items-center justify-center'>
                                     <h6 className='poppins-semibold !text-[12px] m-0'>
-                                        {`${vehicleInfo?.bookingCount ?? '0'} ${(vehicleInfo?.bookingCount==1|| vehicleInfo?.bookingCount==0) ? 'Booking': 'Bookings'}`}
+                                        {`${vehicleInfo?.bookingCount ?? '0'} ${(vehicleInfo?.bookingCount == 1 || vehicleInfo?.bookingCount == 0) ? 'Booking' : 'Bookings'}`}
                                     </h6>
-
                                 </div>
                             </div>
                         </div>
+
+                    </div>
+                    <div className='w-full h-20 border mt-2 rounded px-3 py-2'>
+                        <h6 className='mb-0 !text-[#7a7a7a] poppins-semibold !text-[15px]'>Car location</h6>
+                        <h6 className='!text-[13px] px-5 pt-2'>
+                            {vehicleInfo?.location?.pickup}
+                        </h6>
+                    </div>
+                    <h6 className='!text-[13px] mt-3 poppins-semibold mb-0'>Ratings & Review</h6>
+                    <div className='w-full h-62 border mt-2 rounded px-3 py-2'>
+                        <div className='h-1/5 flex justify-start'>
+                            <div className='w-1/2 flex items-center'>
+                                <h3 className='mid m-0'>{vehicleInfo?.averageRating.toFixed(2)}</h3>
+                                <Stack spacing={1} className='mx-2'>
+                                    <Rating name="half-rating-read" defaultValue={vehicleInfo?.averageRating} precision={0.5} readOnly />
+                                </Stack>
+                            </div>
+                        </div>
+                        <div className='w-4/5'>
+
+                        </div>
                     </div>
                 </div>
+
             </div>
-            <div className='h-[500px] bg-[#f0eded] w-3/10 rounded-xl fixed top-26 right-2'>
+            <div className='h-[calc(99.8vh-78.4px)] bg-[#f0eded] w-3/10 fixed top-20 right-0'>
 
             </div>
         </div>
