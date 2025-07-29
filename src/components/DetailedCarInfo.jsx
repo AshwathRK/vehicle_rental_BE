@@ -1,9 +1,10 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { ClimbingBoxLoader } from 'react-spinners';
 import Rating from '@mui/material/Rating';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -16,6 +17,8 @@ export default function DetailedCarInfo() {
     const [vehicleCategory, setVehicleCategory] = useState('');
     const [loadder, setLoadder] = useState(false)
     const [userDetails, setUserDetils] = useState({})
+    const [reviews, setReviews] = useState({})
+    const [similarcars, setSimilarCars] = useState({})
 
     useEffect(() => {
         const getVehicleInformation = async () => {
@@ -24,6 +27,7 @@ export default function DetailedCarInfo() {
                 const response = await axios.get(`${serverUrl}/vehicle/${id}`);
                 setVehicleInfo(response.data);
                 const userId = response.data.userId;
+                console.log(response.data)
                 if (userId) {
                     const userResponse = await axios.get(`${serverUrl}/user/${userId}`);
                     setUserDetils(userResponse.data.userDetails);
@@ -37,14 +41,13 @@ export default function DetailedCarInfo() {
         getVehicleInformation();
     }, [id]);
 
-    console.log(userDetails)
-
     useEffect(() => {
         const getCategoryById = async () => {
+            // debugger
             setLoadder(true)
             if (!vehicleInfo?.category) return;
             try {
-                const response = await axios.get(`${serverUrl}/category/${vehicleInfo.category}`);
+                const response = await axios.get(`${serverUrl}/categorie/${vehicleInfo.category}`);
                 setVehicleCategory(response.data?.category?.category || '');
                 setLoadder(false)
             } catch (error) {
@@ -52,11 +55,22 @@ export default function DetailedCarInfo() {
                 setLoadder(false)
             }
         };
-
         getCategoryById();
     }, [vehicleInfo?.category]);
 
-    console.log(vehicleInfo)
+    useEffect(() => {
+        const similerCars = async () => {
+            try {
+                const response = await axios.get(`${serverUrl}/similarcars/${vehicleInfo.category}`, {
+                    withCredentials: true,
+                })
+                setSimilarCars(response.data.suggestedVehicles)
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        similerCars()
+    }, [vehicleInfo])
 
     const goToPrev = () => {
         setCurrentIndex((prevIndex) => (prevIndex === 0 ? vehicleInfo.images.length - 1 : prevIndex - 1));
@@ -67,8 +81,50 @@ export default function DetailedCarInfo() {
     };
 
 
-    console.log(vehicleInfo?.bookingCount)
     const currentImage = vehicleInfo?.images?.[currentIndex];
+
+    useEffect(() => {
+        const getRatingsAndReviews = async () => {
+            try {
+                const response = await axios.get(`${serverUrl}/review/car/${id}`);
+                if (response.data.length !== 0) {
+                    const reviewsWithUserInfo = await Promise.allSettled(response.data.map(async (value) => {
+                        try {
+                            const userInfoResponse = await axios.get(`${serverUrl}/user/${value.userId._id}`);
+                            return { ...value, userInfo: userInfoResponse.data };
+                        } catch (error) {
+                            console.log(`Error fetching user info for ${value.userId.user}:`, error);
+                            return { ...value, userInfo: null }; // or some default value
+                        }
+                    }));
+                    const fulfilledReviews = reviewsWithUserInfo.filter((result) => result.status === 'fulfilled').map((result) => result.value);
+                    setReviews(fulfilledReviews);
+                } else {
+                    setReviews([]); // or some default value
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        getRatingsAndReviews();
+    }, [id, serverUrl]);
+
+    // console.log(reviews)
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "No date available";
+        let date = new Date(dateString);
+        return date.toLocaleString();
+    }
+
+    const getProfileImage = (profile) => {
+        if (!profile || profile.length === 0) return "/boy.png";
+        const img = profile[0];
+        const uint8Array = new Uint8Array(img.data.data);
+        const blob = new Blob([uint8Array], { type: img.contentType });
+        return URL.createObjectURL(blob);
+    };
 
     if (loadder) {
         return (
@@ -77,6 +133,8 @@ export default function DetailedCarInfo() {
             </div>
         )
     }
+
+    console.log(similarcars)
 
     return (
         <div className='h-[calc(99.8vh-78.4px)] flex relative top-[78px]'>
@@ -153,17 +211,83 @@ export default function DetailedCarInfo() {
                     </div>
                     <h6 className='!text-[13px] mt-3 poppins-semibold mb-0'>Ratings & Review</h6>
                     <div className='w-full h-62 border mt-2 rounded px-3 py-2'>
-                        <div className='h-1/5 flex justify-start'>
+                        <div className='h-1/5 flex justify-start flex'>
                             <div className='w-1/2 flex items-center'>
                                 <h3 className='mid m-0'>{vehicleInfo?.averageRating.toFixed(2)}</h3>
                                 <Stack spacing={1} className='mx-2'>
                                     <Rating name="half-rating-read" defaultValue={vehicleInfo?.averageRating} precision={0.5} readOnly />
                                 </Stack>
                             </div>
+                            <div className='w-1/2 flex justify-end items-center'>
+                                {
+                                    reviews.length > 5 ? <a href="" className='flex items-center !no-underline'>see more
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="mx-2 mb-0 size-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                        </svg>
+                                    </a> : ''
+                                }
+
+                            </div>
                         </div>
                         <div className='w-4/5'>
+                            <h6 className='!text-[12px] poppins-semibold'>Reviews</h6>
+                            <div className='w-[880px] h-[160px]'>
+                                <div className='w-full h-full overflow-y-auto flex gap-2'>
 
+                                    {
+                                        reviews.length === 0 ? <h6>No reviews</h6> :
+                                            Array.isArray(reviews) && reviews.map((value, key) => (
+                                                <div key={value.id || key} className='h-full w-42 rounded border px-2'>
+                                                    <section className='w-full h-1/3 flex items-center'>
+                                                        <img
+                                                            src={getProfileImage(value.userInfo.userDetails.profile)}
+                                                            className='w-8 h-8 rounded-[50%] object-cover'
+                                                        />
+                                                        <div className='h-full w-[140px] px-3 flex flex-col justify-center'>
+                                                            <h6 className='!text-[13px] m-0'>{value.userInfo.userDetails.fullname}</h6>
+                                                            <p className='!text-[10px] m-0 !text-[#7a7a7a]'>{formatDate(value.createdAt)}</p>
+                                                        </div>
+                                                    </section>
+                                                    <div className='h-2/3 p-1'>
+                                                        <p className='!text-[10px] overflow-wrap break-word'>
+                                                            {value.comment}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                    }
+
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                    <h6 className='!text-[13px] mt-3 poppins-semibold mb-2'>Similar Listings</h6>
+                    <div className='w-full h-[200px] rounded overflow-x-auto  gap-2 flex items-center px-1'>
+
+                        {
+                            Array.isArray(similarcars) && similarcars.map((value, index) => (
+                                <Link to={`/car/${value._id}`} key={index} className="no-underline">
+                                    <div className="w-[200px] h-[180px] border rounded overflow-hidden flex flex-col hover:shadow-xl cursor-pointer transition-all duration-300">
+                                        <img
+                                            src={getProfileImage(value.images)}
+                                            alt={`${value.make} ${value.model}`}
+                                            className="w-full h-[60%] object-cover"
+                                        />
+                                        <div className="h-[40%] p-2 flex justify-between">
+                                            <div className="flex flex-col justify-center">
+                                                <h6 className="text-sm font-semibold m-0">{`${value.make} ${value.model}`}</h6>
+                                                <p className="text-xs text-gray-600 m-0">
+                                                    {`${value.transmission} • ${value.fuelType} • ${value.seatingCapacity} Seats`}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center text-right">
+                                                <h6 className="text-sm font-medium m-0">{`₹${value.pricePerDay}/day`}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))
+                        }
                     </div>
                 </div>
 

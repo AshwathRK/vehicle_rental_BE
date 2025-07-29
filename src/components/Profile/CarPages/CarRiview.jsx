@@ -30,7 +30,6 @@ export default function CarRiview() {
         const getVehicleInformation = async () => {
             try {
                 const response = await axios.get(`${serverUrl}/vehicle/${id}`);
-                console.log(response.data)
                 setVehicleInfo(response.data);
             } catch (error) {
                 console.log(error);
