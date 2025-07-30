@@ -4,7 +4,6 @@ import { Link, useParams } from 'react-router-dom'
 import { ClimbingBoxLoader } from 'react-spinners';
 import Rating from '@mui/material/Rating';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -262,11 +261,11 @@ export default function DetailedCarInfo() {
                         </div>
                     </div>
                     <h6 className='!text-[13px] mt-3 poppins-semibold mb-2'>Similar Listings</h6>
-                    <div className='w-full h-[200px] rounded overflow-x-auto  gap-2 flex items-center px-1'>
+                    <div className='w-full h-[200px] rounded overflow-x-auto gap-2 flex items-center px-1'>
 
                         {
                             Array.isArray(similarcars) && similarcars.map((value, index) => (
-                                <Link to={`/car/${value._id}`} key={index} className="no-underline">
+                                <Link to={`/car/${value._id}`} key={index} className="!no-underline">
                                     <div className="w-[200px] h-[180px] border rounded overflow-hidden flex flex-col hover:shadow-xl cursor-pointer transition-all duration-300">
                                         <img
                                             src={getProfileImage(value.images)}
@@ -275,7 +274,7 @@ export default function DetailedCarInfo() {
                                         />
                                         <div className="h-[40%] p-2 flex justify-between">
                                             <div className="flex flex-col justify-center">
-                                                <h6 className="text-sm font-semibold m-0">{`${value.make} ${value.model}`}</h6>
+                                                <h6 className="text-sm font-semibold m-0 !no-underline">{`${value.make} ${value.model}`}</h6>
                                                 <p className="text-xs text-gray-600 m-0">
                                                     {`${value.transmission} • ${value.fuelType} • ${value.seatingCapacity} Seats`}
                                                 </p>
@@ -292,9 +291,72 @@ export default function DetailedCarInfo() {
                 </div>
 
             </div>
-            <div className='h-[calc(99.8vh-78.4px)] bg-[#f0eded] w-3/10 fixed top-20 right-0'>
+            <div className='h-[calc(99.8vh-78.4px)] bg-[#f0eded] w-3/10 fixed top-20 right-0 flex flex-col px-4'>
+                <h6 className='!text-[15px] my-4 poppins-semibold mid'>Features</h6>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 border-b border-[#d4d4d4]">
+                    {vehicleInfo?.airConditioning && (
+                        <p className="poppins-semibold text-[12px] flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                strokeWidth="1.5" stroke="green" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            Air Conditioner
+                        </p>
+                    )}
 
+                    {vehicleInfo?.luggageCapacity && (
+                        <p className="poppins-semibold text-[12px] flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                strokeWidth="1.5" stroke="green" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            {`${vehicleInfo?.luggageCapacity} luggage capacity`}
+                        </p>
+                    )}
+
+                    {vehicleInfo?.numberOfDoors && (
+                        <p className="poppins-semibold text-[12px] flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                strokeWidth="1.5" stroke="green" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            {`${vehicleInfo?.numberOfDoors} Doors`}
+                        </p>
+                    )}
+
+                    {vehicleInfo?.seatingCapacity && (
+                        <p className="poppins-semibold text-[12px] flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                strokeWidth="1.5" stroke="green" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            {`${vehicleInfo?.seatingCapacity} Seats`}
+                        </p>
+                    )}
+
+                    {vehicleInfo?.mileage && (
+                        <p className="poppins-semibold text-[12px] flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                strokeWidth="1.5" stroke="green" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            {`${vehicleInfo?.mileage} Mileage`}
+                        </p>
+                    )}
+                </div>
+                
+                <h6 className='!text-[15px] my-4 poppins-semibold mid'>Pricing</h6>
+                <div className='w-full h-[300px] flex flex-col items-end'>
+                    <h6 className='!text-[25px]'><span className='!text-[15px] px-1'>₹</span>{vehicleInfo.pricePerDay}<span className='!text-[15px]'>per day</span></h6>
+                    <h6>{`₹ ${vehicleInfo.pricePerHour} per hour`}</h6>
+                </div>
             </div>
+
         </div>
     )
 }
