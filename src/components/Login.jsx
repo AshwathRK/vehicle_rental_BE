@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { ClimbingBoxLoader } from 'react-spinners';
 
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -11,7 +11,7 @@ export default function LogIn() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loadder, setLoadding] = useState(false)
-    const {id} =useParams()
+    const { id } = useParams()
 
     const navigate = useNavigate();
     // const dispatch = useDispatch();
@@ -21,6 +21,7 @@ export default function LogIn() {
     };
 
     const handleSubmit = async (event) => {
+        // debugger
         setLoadding(true)
         event.preventDefault();
         try {
@@ -29,18 +30,18 @@ export default function LogIn() {
                 { email, password },
                 { withCredentials: true }
             );
-
             localStorage.setItem('isAuthenticated', 'true');
             sessionStorage.setItem('accessToken', response.data.accessToken);
             sessionStorage.setItem('refreshToken', response.data.refreshToken);
             sessionStorage.setItem('deviceId', response.data.deviceId);
-            // sessionStorage.setItem('user', JSON.stringify(response.data.user));
-            // dispatch(addUserDetails(response.data.user));
-            id?navigate(`/car/${id}`): navigate('/lineup');
+            id ? navigate(`/car/${id}`) : navigate('/lineup');
             setLoadding(false)
         } catch (error) {
+            setLoadding(false)
             if (error.response) {
-                toast.error(error.response.data.message || "Login failed");
+                setTimeout(() => {
+                    toast.error(error.response.data.message || "Login failed");
+                }, 500);
             } else {
                 toast.error("Network error");
             }
@@ -138,6 +139,7 @@ export default function LogIn() {
                     </Link>
                 </p>
             </div>
+            <ToastContainer/>
         </div>
     );
 }

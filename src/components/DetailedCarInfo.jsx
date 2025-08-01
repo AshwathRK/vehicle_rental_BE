@@ -175,16 +175,22 @@ export default function DetailedCarInfo() {
 
     const weeklyDiscount = () => {
         const day = vehicleInfo?.pricePerDay
-        const weekly = day - (day * (vehicleInfo?.discounts.weekly ? (vehicleInfo?.discounts.weekly / 100) : 1))
-        console.log(`weekly`, weekly)
-        return weekly * 7
+        if (vehicleInfo?.discounts.weekly) {
+            const weekly = day - (day * (vehicleInfo?.discounts.weekly / 100))
+            return weekly * 7
+        }
+        return day * 7
     }
 
     const monthlyDiscount = () => {
         const day = vehicleInfo?.pricePerDay
-        const monthly = day - (day * (vehicleInfo?.discounts.monthly ? (vehicleInfo?.discounts.monthly / 100) : 1))
-        console.log(`Monthy`, monthly)
-        return monthly * 28
+        // console.log((vehicleInfo?.discounts.monthly ? (vehicleInfo?.discounts.monthly / 100) : 1))
+        if (vehicleInfo?.discounts.monthly) {
+            const monthly = day - (day * (vehicleInfo?.discounts.monthly / 100))
+            return monthly * 28
+        }
+        return day * 28
+
     }
 
     return (
@@ -463,16 +469,18 @@ export default function DetailedCarInfo() {
                     {
                         isAuthenticated ?
                             <div className='h-40 w-full flex items-center'>
-                                <Button variant="outlined" className='w-full'>
-                                    Get Rental
-                                </Button>
+                                <Link to={`/bookingpage`} className='w-full'>
+                                    <Button variant="outlined" className='w-full'>
+                                        Get Rental
+                                    </Button>
+                                </Link>
                             </div> :
                             <div className='h-40 w-full flex items-center'>
                                 <Link to={`/login/${id}`} className='w-full'>
                                     <Button variant="outlined" className='w-full'>
                                         Login
                                     </Button>
-                                </Link> 
+                                </Link>
                             </div>
                     }
                 </div>

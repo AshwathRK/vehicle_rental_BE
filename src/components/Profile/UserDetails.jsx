@@ -2,8 +2,9 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import Button from '@mui/material/Button';
 import { toast, ToastContainer } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ClimbingBoxLoader } from 'react-spinners';
+import BookingHistory from './BookingHistory'
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -212,7 +213,7 @@ export default function UserDetails() {
             setFileToUpload(file);
         }
     };
-    
+
 
     const handleUpload = async () => {
         try {
@@ -474,8 +475,12 @@ export default function UserDetails() {
                                         disabled={!isEditing} id='website' className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] ${!isEditing ? 'bg-zinc-100' : ''}`} autocomplete="off" />
                                 </div>
                             </div>
-                            {/* Other profile and contact information UI... */}
-                            {/* No changes needed here for responsiveness */}
+                            <p className='poppins-semibold text-[15px]'>Check your Previous
+                                <Link to = {'/bookinghistory'}>
+                                    <span className='px-1 text-blue-500 cursor-pointer' href="">Booking History</span>
+                                </Link>
+
+                            </p>
                         </div>
                     </div>
                 </div>

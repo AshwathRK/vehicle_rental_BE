@@ -12,6 +12,8 @@ import Search from './components/SearchPage';
 import Profile from './components/Profile';
 import PrivateRoute from './PrivateRoute';
 import DetailedCarInfo from './components/DetailedCarInfo';
+import BookingHistory from './components/Profile/BookingHistory';
+import BookingPage from './components/BookingPage';
 
 export default function App() {
     return (
@@ -59,6 +61,13 @@ export default function App() {
                 } />
                 <Route element={<PrivateRoute />}>
                     <Route path="/profile/*" element={<Profile />}
+                    />
+                    <Route path="/bookinghistory" element={
+                        <>
+                            <BookingHistory />
+                        </>
+                    } />
+                    <Route path="/bookingpage" element={<BookingPage />}
                     />
                 </Route>
             </Routes>
