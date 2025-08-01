@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { Link } from 'react-router-dom';
 
 export default function HeroSection() {
     const titleRef = useRef(null);
@@ -46,11 +47,13 @@ export default function HeroSection() {
                     Affordable rentals, wide selection, easy booking.
                 </h3>
                 <div className='w-full flex justify-center'>
-                    <button
-                    // ref={bookNowRef}
-                    className='hero-button w-40 md:w-60 h-10 md:h-15 text-white poppins-semibold text-[clamp(1rem,3vw,1.5rem)] bg-primery rounded'>
-                    Book Now
-                </button>
+                    <Link to='/lineup'>
+                        <button
+                            // ref={bookNowRef}
+                            className='hero-button w-40 md:w-60 h-10 md:h-15 text-white poppins-semibold text-[clamp(1rem,3vw,1.5rem)] bg-primery rounded'>
+                            Book Now
+                        </button>
+                    </Link>
                 </div>
             </div>
             <div ref={imageRef} className='hero-image-container h-full md:w-1/2 flex justify-center items-center'>

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ClimbingBoxLoader } from 'react-spinners';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -17,10 +19,21 @@ export default function Populer() {
     // === State: Manage min and max cost ===
     const [manageCost, setManageCost] = useState({});
 
+    // === State: Login data === //
+    const [isAuthenticated, setIsAuthenticated] = useState(null);
+
+    // === Access and Refress token === //
+    const accessToken = sessionStorage.getItem('accessToken');
+    const deviceId = sessionStorage.getItem('deviceId');
+
+    // === Loadding === //
+    const [loadder, setLoadder] = useState(false)
+
     // === useEffect: Fetch data for top-rated and top-booking cars on mount ===
     useEffect(() => {
         // --- Fetch top-rated cars ---
         const fetchingTopRatedCars = async () => {
+            setLoadder(true)
             try {
                 const response = await axios.get(`${serverUrl}/top-rated`);
                 setTopRatedCars(response.data);
@@ -31,13 +44,16 @@ export default function Populer() {
                     ratedIndices[car.vehicle._id] = 0;
                 });
                 setImageIndicesForRating((prev) => ({ ...prev, ...ratedIndices }));
+                setLoadder(false)
             } catch (error) {
                 console.log(error.message);
+                setLoadder(false)
             }
         };
 
         // --- Fetch top-booking cars ---
         const fetchingTopBookingCars = async () => {
+            setLoadder(true)
             try {
                 const response = await axios.get(`${serverUrl}/topbooking`);
                 setTopBookingCars(response.data.vehicles);
@@ -47,8 +63,10 @@ export default function Populer() {
                     bookingIndices[car._id] = 0;
                 });
                 setImageIndices((prev) => ({ ...prev, ...bookingIndices }));
+                setLoadder(false)
             } catch (error) {
                 console.log(error.message);
+                setLoadder(false)
             }
         };
 
@@ -100,7 +118,41 @@ export default function Populer() {
         }));
     };
 
-    // console.log(topRatedCar)
+    // === Check the user login or not === //
+    useEffect(() => {
+        const verifyUserAuthentication = async () => {
+            try {
+                const response = await axios.get(`${serverUrl}`, {
+                    withCredentials: true,
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Device-Id': deviceId
+                    }
+                });
+
+                if (response.status === 200 && response.data) {
+                    setIsAuthenticated(true);
+                } else {
+                    sessionStorage.clear();
+                    setIsAuthenticated(false);
+                }
+            } catch (error) {
+                console.error('Authentication Failed:', error);
+                sessionStorage.clear();
+                setIsAuthenticated(false);
+            }
+        };
+
+        verifyUserAuthentication();
+    }, []);
+
+    if (loadder) {
+        return(
+            <div className="w-full flex flex-col lg:flex-row gap-2 flex items-center justify-center">
+                <ClimbingBoxLoader/>
+            </div>
+        )
+    }
 
     // === Main UI Rendering ===
     return (
@@ -214,9 +266,20 @@ export default function Populer() {
                                                 </p>
                                             )}
                                         </div>
-                                        <button className="bg-mid text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
-                                            Book Now
-                                        </button>
+
+                                        {
+                                            isAuthenticated ?
+                                                <Link to={`/car/${car?._id}`}>
+                                                    <button className="bg-mid text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
+                                                        Book Now
+                                                    </button>
+                                                </Link> :
+                                                <Link to={`/login/${car?._id}`}>
+                                                    <button className="bg-mid text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
+                                                        Book Now
+                                                    </button>
+                                                </Link>
+                                        }
                                     </div>
                                 </div>
                             );
@@ -239,8 +302,8 @@ export default function Populer() {
                                 ? `data:${imageData.contentType};base64,${imageData.data}`
                                 : './fallback.jpg';
 
-                                // console.log(imageData)
-                                // console.log(imageSrc)
+                            // console.log(imageData)
+                            // console.log(imageSrc)
                             return (
                                 <div key={key} className="min-w-[340px] h-76 border rounded shadow mx-1 flex-shrink-0 bg-white relative">
                                     <div className="h-4/5 relative">
@@ -291,9 +354,19 @@ export default function Populer() {
                                                 </p>
                                             )}
                                         </div>
-                                        <button className="bg-primery text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
-                                            Book Now
-                                        </button>
+                                        {
+                                            isAuthenticated ?
+                                                <Link to={`/car/${car?._id}`}>
+                                                    <button className="bg-primery text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
+                                                        Book Now
+                                                    </button>
+                                                </Link> :
+                                                <Link to={`/login/${car?._id}`}>
+                                                    <button className="bg-primery text-white px-3 py-1 rounded text-sm hover:bg-orange-600">
+                                                        Book Now
+                                                    </button>
+                                                </Link>
+                                        }
                                     </div>
                                 </div>
                             );

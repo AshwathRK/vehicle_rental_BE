@@ -32,6 +32,11 @@ export default function App() {
                         <LogIn />
                     </>
                 } />
+                <Route path="/login/:id" element={
+                    <>
+                        <LogIn />
+                    </>
+                } />
                 <Route path="/signup" element={
                     <>
                         <Signup />

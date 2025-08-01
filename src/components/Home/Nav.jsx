@@ -16,7 +16,7 @@ export default function Navbar() {
     const isLoginPage = location.pathname === '/login' || location.pathname === '/signup';
     const isSearchPage = location.pathname === '/search';
     const isProfilePage = location.pathname.startsWith('/profile');
-    const isVehicles = location.pathname === '/lineup';
+    const isVehicles = location.pathname === '/lineup' || location.pathname.startsWith('/car');
 
     // Get tokens form the local storage
     const accessToken = sessionStorage.getItem('accessToken');
@@ -66,6 +66,8 @@ export default function Navbar() {
             tooltipInstances.forEach((instance) => instance.dispose());
         };
     }, [isLogin, location.pathname]);
+
+
 
     return (
         <div className='Navbar px-4 w-full md:px-16 h-20 border-b-2 border-white flex items-center fixed top-0 justify-between md:justify-around shadow-sm bg-mid z-300'>
@@ -126,7 +128,9 @@ export default function Navbar() {
 
                             <Link to='/profile' className="!no-underline ml-2">
                                 <button className='w-3 h-3 m-0'>
-                                    <img src="./arrow-down.png" className='w-5 invert' alt="Arrow Down" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5" />
+                                    </svg>
                                 </button>
                             </Link>
                         </div>
@@ -187,7 +191,10 @@ export default function Navbar() {
                             <img src='./boy.png' className='w-10' alt='Profile' />
                             <Link to='/profile' className='!no-underline ml-2'>
                                 <button className='w-3 h-3 m-0'>
-                                    <img src='./arrow-down.png' className='w-5 invert' alt='Arrow Down' />
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 5.25 7.5 7.5 7.5-7.5m-15 6 7.5 7.5 7.5-7.5" />
+                                    </svg>
+
                                 </button>
                             </Link>
                         </div>

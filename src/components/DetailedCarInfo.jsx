@@ -1,9 +1,10 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ClimbingBoxLoader } from 'react-spinners';
+import { ClimbingBoxLoader, FadeLoader } from 'react-spinners';
 import Rating from '@mui/material/Rating';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -18,6 +19,11 @@ export default function DetailedCarInfo() {
     const [userDetails, setUserDetils] = useState({})
     const [reviews, setReviews] = useState({})
     const [similarcars, setSimilarCars] = useState({})
+    const [isAuthenticated, setIsAuthenticated] = useState(null);
+    const [similerLoadder, setSimilerLoadder] = useState(false)
+
+    const accessToken = sessionStorage.getItem('accessToken');
+    const deviceId = sessionStorage.getItem('deviceId');
 
     useEffect(() => {
         const getVehicleInformation = async () => {
@@ -58,14 +64,20 @@ export default function DetailedCarInfo() {
     }, [vehicleInfo?.category]);
 
     useEffect(() => {
+        setSimilerLoadder(true)
         const similerCars = async () => {
             try {
                 const response = await axios.get(`${serverUrl}/similarcars/${vehicleInfo.category}`, {
                     withCredentials: true,
+                    headers: {
+                        'SelectedCar': id
+                    }
                 })
                 setSimilarCars(response.data.suggestedVehicles)
+                setSimilerLoadder(false)
             } catch (error) {
                 console.log(error)
+                setSimilerLoadder(false)
             }
         }
         similerCars()
@@ -125,6 +137,32 @@ export default function DetailedCarInfo() {
         return URL.createObjectURL(blob);
     };
 
+    useEffect(() => {
+        const fetchlogin = async () => {
+            try {
+                const response = await axios.get(`${serverUrl}`, {
+                    withCredentials: true,
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Device-Id': deviceId
+                    }
+                });
+                if (response.status === 200 && response.data) {
+                    setIsAuthenticated(true);
+                } else {
+                    sessionStorage.clear();
+                    setIsAuthenticated(false);
+                }
+            }
+            catch (error) {
+                console.error('Authentication Failed:', error);
+                sessionStorage.clear();
+                setIsAuthenticated(false);
+            }
+        }
+        fetchlogin()
+    }, [])
+
     if (loadder) {
         return (
             <div className='h-[calc(99.8vh-78.4px)] w-full flex items-center justify-center relative top-[78px]'>
@@ -133,7 +171,21 @@ export default function DetailedCarInfo() {
         )
     }
 
-    console.log(similarcars)
+    // console.log(similarcars)
+
+    const weeklyDiscount = () => {
+        const day = vehicleInfo?.pricePerDay
+        const weekly = day - (day * (vehicleInfo?.discounts.weekly ? (vehicleInfo?.discounts.weekly / 100) : 1))
+        console.log(`weekly`, weekly)
+        return weekly * 7
+    }
+
+    const monthlyDiscount = () => {
+        const day = vehicleInfo?.pricePerDay
+        const monthly = day - (day * (vehicleInfo?.discounts.monthly ? (vehicleInfo?.discounts.monthly / 100) : 1))
+        console.log(`Monthy`, monthly)
+        return monthly * 28
+    }
 
     return (
         <div className='h-[calc(99.8vh-78.4px)] flex relative top-[78px]'>
@@ -234,7 +286,8 @@ export default function DetailedCarInfo() {
                                 <div className='w-full h-full overflow-y-auto flex gap-2'>
 
                                     {
-                                        reviews.length === 0 ? <h6>No reviews</h6> :
+                                        reviews.length === 0 ?
+                                            <h6>No reviews</h6> :
                                             Array.isArray(reviews) && reviews.map((value, key) => (
                                                 <div key={value.id || key} className='h-full w-42 rounded border px-2'>
                                                     <section className='w-full h-1/3 flex items-center'>
@@ -260,34 +313,47 @@ export default function DetailedCarInfo() {
                             </div>
                         </div>
                     </div>
-                    <h6 className='!text-[13px] mt-3 poppins-semibold mb-2'>Similar Listings</h6>
-                    <div className='w-full h-[200px] rounded overflow-x-auto gap-2 flex items-center px-1'>
 
-                        {
-                            Array.isArray(similarcars) && similarcars.map((value, index) => (
-                                <Link to={`/car/${value._id}`} key={index} className="!no-underline">
-                                    <div className="w-[200px] h-[180px] border rounded overflow-hidden flex flex-col hover:shadow-xl cursor-pointer transition-all duration-300">
-                                        <img
-                                            src={getProfileImage(value.images)}
-                                            alt={`${value.make} ${value.model}`}
-                                            className="w-full h-[60%] object-cover"
-                                        />
-                                        <div className="h-[40%] p-2 flex justify-between">
-                                            <div className="flex flex-col justify-center">
-                                                <h6 className="text-sm font-semibold m-0 !no-underline">{`${value.make} ${value.model}`}</h6>
-                                                <p className="text-xs text-gray-600 m-0">
-                                                    {`${value.transmission} • ${value.fuelType} • ${value.seatingCapacity} Seats`}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center text-right">
-                                                <h6 className="text-sm font-medium m-0">{`₹${value.pricePerDay}/day`}</h6>
-                                            </div>
-                                        </div>
+                    <h6 className='!text-[13px] mt-3 poppins-semibold mb-2'>Similar Listings</h6>
+                    {
+                        similerLoadder ?
+                            <div className='w-full h-[200px] rounded overflow-x-auto gap-2 flex items-center justify-center px-1'>
+                                <FadeLoader />
+                            </div> :
+                            Array.isArray(similarcars) && similarcars.length > 0 ?
+                                <>
+                                    <div className='w-full h-[200px] rounded overflow-x-auto gap-2 flex items-center px-1'>
+
+                                        {
+                                            Array.isArray(similarcars) && similarcars.map((value, index) => (
+                                                <Link to={`/car/${value._id}`} key={index} className="!no-underline">
+                                                    <div className="w-[200px] h-[180px] border rounded overflow-hidden flex flex-col hover:shadow-xl cursor-pointer transition-all duration-300">
+                                                        <img
+                                                            src={getProfileImage(value.images)}
+                                                            alt={`${value.make} ${value.model}`}
+                                                            className="w-full h-[60%] object-cover"
+                                                        />
+                                                        <div className="h-[40%] p-2 flex justify-between">
+                                                            <div className="flex flex-col justify-center">
+                                                                <h6 className="text-sm font-semibold m-0 !no-underline">{`${value.make} ${value.model}`}</h6>
+                                                                <p className="text-xs text-gray-600 m-0">
+                                                                    {`${value.transmission} • ${value.fuelType} • ${value.seatingCapacity} Seats`}
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex items-center text-right">
+                                                                <h6 className="text-sm font-medium m-0">{`₹${value.pricePerDay}/day`}</h6>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            ))
+                                        }
                                     </div>
-                                </Link>
-                            ))
-                        }
-                    </div>
+                                </> : 'Oops! No similar cars available in this category right now.'
+
+                    }
+
+
                 </div>
 
             </div>
@@ -345,18 +411,73 @@ export default function DetailedCarInfo() {
                                 <path strokeLinecap="round" strokeLinejoin="round"
                                     d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
-                            {`${vehicleInfo?.mileage} Mileage`}
+                            {`${vehicleInfo?.mileage} km/h Mileage`}
+                        </p>
+                    )}
+
+                    {vehicleInfo?.delivery && (
+                        <p className="poppins-semibold text-[12px] flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                strokeWidth="1.5" stroke="green" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round"
+                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            {`${vehicleInfo?.delivery ? "Delivery available" : ''}`}
                         </p>
                     )}
                 </div>
-                
+
                 <h6 className='!text-[15px] my-4 poppins-semibold mid'>Pricing</h6>
                 <div className='w-full h-[300px] flex flex-col items-end'>
-                    <h6 className='!text-[25px]'><span className='!text-[15px] px-1'>₹</span>{vehicleInfo.pricePerDay}<span className='!text-[15px]'>per day</span></h6>
-                    <h6>{`₹ ${vehicleInfo.pricePerHour} per hour`}</h6>
+                    <h6 className='!text-[25px]'><span className='!text-[15px] px-1'>₹</span>{vehicleInfo?.pricePerDay}<span className='!text-[15px]'>per day</span></h6>
+                    <h6>{`₹ ${vehicleInfo?.pricePerHour} per hour`}</h6>
+                    <div className='w-full h-[100px] border rounded flex flex-col p-2'>
+                        <h6 className='!text-[15px] poppins-semibold mid'>Subscription</h6>
+                        <div className='w-full h-10 flex justify-between'>
+                            <h6 className='m-0'>Weekly price</h6>
+                            {
+                                vehicleInfo?.discounts.weekly ?
+                                    <div className='flex'>
+                                        <h6 className='!text-[20px] m-0'>{`₹${weeklyDiscount()}`}</h6>
+                                        <h6 className='mx-2 m-0'><s>{vehicleInfo?.pricePerDay * 7}</s></h6>
+                                    </div> :
+                                    <div className='flex'>
+                                        <h6 className='mx-2 m-0'>{`₹${vehicleInfo?.pricePerDay * 7}`}</h6>
+                                    </div>
+                            }
+                        </div>
+                        <div className='w-full h-10 flex justify-between'>
+                            <h6 className='m-0'>Monthly price</h6>
+                            {
+                                vehicleInfo?.discounts.weekly ?
+                                    <div className='flex'>
+                                        <h6 className='!text-[20px] m-0'>{`₹${monthlyDiscount()}`}</h6>
+                                        <h6 className='mx-2 m-0'><s>{vehicleInfo?.pricePerDay * 28}</s></h6>
+                                    </div> :
+                                    <div className='flex'>
+                                        <h6 className='mx-2 m-0'>{`₹${vehicleInfo?.pricePerDay * 28}`}</h6>
+                                    </div>
+                            }
+                        </div>
+                    </div>
+                    {
+                        isAuthenticated ?
+                            <div className='h-40 w-full flex items-center'>
+                                <Button variant="outlined" className='w-full'>
+                                    Get Rental
+                                </Button>
+                            </div> :
+                            <div className='h-40 w-full flex items-center'>
+                                <Link to={`/login/${id}`} className='w-full'>
+                                    <Button variant="outlined" className='w-full'>
+                                        Login
+                                    </Button>
+                                </Link> 
+                            </div>
+                    }
                 </div>
-            </div>
 
+            </div>
         </div>
     )
 }

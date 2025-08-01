@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { ClimbingBoxLoader } from 'react-spinners';
@@ -11,6 +11,7 @@ export default function LogIn() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loadder, setLoadding] = useState(false)
+    const {id} =useParams()
 
     const navigate = useNavigate();
     // const dispatch = useDispatch();
@@ -35,7 +36,7 @@ export default function LogIn() {
             sessionStorage.setItem('deviceId', response.data.deviceId);
             // sessionStorage.setItem('user', JSON.stringify(response.data.user));
             // dispatch(addUserDetails(response.data.user));
-            navigate('/lineup');
+            id?navigate(`/car/${id}`): navigate('/lineup');
             setLoadding(false)
         } catch (error) {
             if (error.response) {
