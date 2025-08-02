@@ -84,5 +84,6 @@ export default function BookingPage() {
             <div className='w-[80%]'>
             </div>
         </div>
+        
     )
 }
