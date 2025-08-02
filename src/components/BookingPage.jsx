@@ -82,7 +82,6 @@ export default function BookingPage() {
                 </Stepper>
             </div>
             <div className='w-[80%]'>
-
             </div>
         </div>
     )
