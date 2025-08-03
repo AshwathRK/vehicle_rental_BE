@@ -271,6 +271,14 @@ input.custom-checkbox:checked {
     display: none;
 }
 
+.fc {
+    height: 80% !important;
+}
+
+.rdrDefinedRangesWrapper {
+  display: none;
+}
+
 
 
 
