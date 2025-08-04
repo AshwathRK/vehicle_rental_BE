@@ -1,16 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Stepper from '@mui/joy/Stepper';
 import Step, { stepClasses } from '@mui/joy/Step';
 import StepIndicator, { stepIndicatorClasses } from '@mui/joy/StepIndicator';
 import Typography, { typographyClasses } from '@mui/joy/Typography';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import AppRegistrationRoundedIcon from '@mui/icons-material/AppRegistrationRounded';
-import 'react-date-range/dist/styles.css'; // main style file
-import 'react-date-range/dist/theme/default.css'; // theme css file
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
 import { useState } from 'react';
 import { DateRangePicker } from 'react-date-range';
 import Button from '@mui/material/Button';
-// import TimePicker from 'react-time-picker';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -21,12 +20,26 @@ import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
+import axios from 'axios';
+import { useParams } from 'react-router-dom';
+
+// === Load server URL from environment ===
+const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 export default function BookingPage() {
+    const { id } = useParams();
     // Stepper state
     const [stepper, setStepper] = React.useState({
         activeStep: 0,
     });
+
+    const [bookingData, setBookingData] = useState({
+        startDate: '',
+        endDate: '',
+        carId: id,
+    });
+
+    const [confirmBooking, setConfirmBooking] = useState({});
 
     const [tabValue, setTabValue] = React.useState('1');
 
@@ -35,13 +48,7 @@ export default function BookingPage() {
     };
 
     const today = new Date();
-    const [state, setState] = useState([
-        {
-            startDate: today,
-            endDate: today,
-            key: 'selection'
-        }
-    ]);
+    today.setHours(0, 0, 0, 0);
 
     const handleRangeChange = (item) => {
         if (item.selection.endDate === null) {
@@ -53,62 +60,93 @@ export default function BookingPage() {
         }
     };
 
-    const disabledDates = [
-        new Date(2025, 7, 4),
-        new Date(2025, 7, 7),
-        new Date(2025, 7, 10)
-    ];
+    const [disabledRanges, setDisabledRanges] = React.useState([]);
 
-    const isDisabled = (date) => {
-        return disabledDates.some((disabledDate) => {
-            return date.getTime() === disabledDate.getTime();
-        });
-    };
+    useEffect(() => {
+        const getBookingData = async () => {
+            // Fetch booking data from the server or perform any necessary operations
+            try {
+                const response = await axios.get(`${serverUrl}/booking/car/${id}`,
+                    { withCredentials: true });
+                // Process the response data as needed
+                setDisabledRanges(response.data.data || []);
+                console.log(response.data);
+            } catch (error) {
+                console.error('Error fetching booking data:', error);
+            }
+        }
 
-    const [value, setValue] = useState([dayjs(), dayjs().add(1, 'day')]);
+        getBookingData();
+
+    }, []);
+
+    // console.log('Disabled Ranges:', disabledRanges);
+
+
+    function isDateInRange(date, range) {
+        return date >= range.start && date <= range.end;
+    }
+
+    function findNextAvailableDate(startDate, disabledRanges) {
+        let current = new Date(startDate);
+
+        while (true) {
+            let isInRange = false;
+
+            for (const range of disabledRanges) {
+                if (isDateInRange(current, range)) {
+                    current = new Date(range.end);
+                    current.setDate(current.getDate() + 1);
+                    isInRange = true;
+                    break;
+                }
+            }
+
+            if (!isInRange) {
+                return current;
+            }
+        }
+    }
+
+    // ✅ Find next available date
+    const nextAvailable = findNextAvailableDate(today, disabledRanges);
+
+    const [state, setState] = useState([
+        {
+            startDate: nextAvailable,
+            endDate: nextAvailable,
+            key: 'selection'
+        }
+    ]);
+
+    const [value, setValue] = useState([dayjs(nextAvailable), dayjs(nextAvailable)]);
+
+
+    const disabledDates = [];
+    disabledRanges?.forEach((range) => {
+        const startDate = new Date(range.startDateTime);
+        const endDate = new Date(range.endDateTime);
+        let currentDate = startDate;
+        while (currentDate <= endDate) {
+            disabledDates.push(currentDate);
+            currentDate = new Date(currentDate.setDate(currentDate.getDate() + 1));
+        }
+    });
 
     console.log(value[0].format('YYYY-MM-DD HH:mm:ss'));
     console.log(value[1].format('YYYY-MM-DD HH:mm:ss'));
 
-    const handlePredefinedRange = (range) => {
-        const today = new Date();
-        let startDate, endDate;
+    // Function to handle booking confirmation
+    const handleConfirmBookingPage = () => {
+        debugger
+        setConfirmBooking({
+            startDate: value[0].format('YYYY-MM-DD HH:mm:ss'),
+            endDate: value[1].format('YYYY-MM-DD HH:mm:ss'),
+            carId: id,
+        });
+    }
 
-        switch (range) {
-            case 'Today':
-                startDate = today;
-                endDate = today;
-                break;
-            case 'Tomorrow':
-                const tomorrow = new Date(today.getTime() + 86400000);
-                startDate = tomorrow;
-                endDate = tomorrow;
-                break;
-            case 'This Week':
-                const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-                const lastDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
-                startDate = firstDayOfWeek;
-                endDate = lastDayOfWeek;
-                break;
-            case 'This Month':
-                const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                startDate = firstDayOfMonth;
-                endDate = lastDayOfMonth;
-                break;
-            default:
-                return;
-        }
-
-        setState([
-            {
-                startDate,
-                endDate,
-                key: 'selection'
-            }
-        ]);
-    };
-
+    console.log('Booking Data:', bookingData);
 
     return (
         <div className="h-[calc(99.8vh-78.4px)] flex relative top-[78px]">
@@ -235,49 +273,49 @@ export default function BookingPage() {
                         <TabList onChange={handleTabChange} aria-label="lab API tabs example">
                             <Tab label="Step 1" value="1" />
                         </TabList>
-                        <TabPanel value="1">
-                            <h6 className='!text-[24px] poppins-bold'>Car Availability</h6>
-                            <div className="w-[60%]">
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <DemoContainer
-                                        components={[
-                                            'MultiInputDateTimeRangeField',
-                                        ]}
-                                    >
-                                        <MultiInputDateTimeRangeField
-                                            value={value}
-                                            onChange={(newValue) => setValue(newValue)}
-                                            slotProps={{
-                                                textField: ({ position }) => ({
-                                                    label: position === 'start' ? 'Check-in' : 'Check-out',
-                                                }),
-                                            }}
-                                            format="DD/MM/YYYY hh:mm a"
-                                        />
-                                    </DemoContainer>
-                                </LocalizationProvider>
-                            </div>
-                            <div className='flex justify-center gap-5'>
-                                <div className="mb-4 flex flex-col gap-2 items-start justify-center">
-                                    <Button onClick={() => handlePredefinedRange('Today')}>Today</Button>
-                                    <Button onClick={() => handlePredefinedRange('Tomorrow')}>Tomorrow</Button>
-                                    <Button onClick={() => handlePredefinedRange('This Week')}>This Week</Button>
-                                    <Button onClick={() => handlePredefinedRange('This Month')}>This Month</Button>
+                        <TabPanel value="1" gap-={2}>
+                            <div className='flex flex-col items-center gap-5'>
+                                <h6 className='!text-[24px] poppins-bold'>Car Availability</h6>
+                                <div className="w-[60%]">
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DemoContainer
+                                            components={[
+                                                'MultiInputDateTimeRangeField',
+                                            ]}
+                                        >
+                                            <MultiInputDateTimeRangeField
+                                                value={value}
+                                                onChange={(newValue) => setValue(newValue)}
+                                                slotProps={{
+                                                    textField: ({ position }) => ({
+                                                        label: position === 'start' ? 'Booking-Start' : 'Booking-End',
+                                                    }),
+                                                }}
+                                                format="DD/MM/YYYY hh:mm a"
+                                            />
+                                        </DemoContainer>
+                                    </LocalizationProvider>
                                 </div>
-                                <DateRangePicker
-                                    onChange={handleRangeChange}
-                                    showSelectionPreview={true}
-                                    moveRangeOnFirstSelection={false}
-                                    months={2}
-                                    minDate={new Date()}
-                                    disablePast={true}
-                                    ranges={state}
-                                    direction="horizontal"
-                                    preventSnapRefocus={true}
-                                    calendarFocus="forwards"
-                                    showDateDisplay={false}
-                                    disabledDates={disabledDates.map((date) => date.getTime())}
-                                />
+                                <div className='flex justify-center gap-5 w-[80%] border border-[#d4d4d4] rounded-lg p-5'>
+                                    <DateRangePicker className='w-[70%]'
+                                        onChange={handleRangeChange}
+                                        showSelectionPreview={true}
+                                        moveRangeOnFirstSelection={false}
+                                        months={2}
+                                        minDate={new Date()}
+                                        disablePast={true}
+                                        ranges={state}
+                                        direction="horizontal"
+                                        preventSnapRefocus={true}
+                                        calendarFocus="forwards"
+                                        showDateDisplay={false}
+                                        disabledDates={disabledDates.map(date => date.getTime())}
+                                    />
+                                </div>
+                                <div className='flex justify-end gap-3 px-20'>
+                                    <Button onClick={handleConfirmBookingPage} variant="contained" color="success">Confirm Booking Date</Button>
+                                    <Button>Cancel</Button>
+                                </div>
                             </div>
                         </TabPanel>
                     </TabContext>

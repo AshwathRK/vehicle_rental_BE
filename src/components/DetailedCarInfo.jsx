@@ -32,7 +32,7 @@ export default function DetailedCarInfo() {
                 const response = await axios.get(`${serverUrl}/vehicle/${id}`);
                 setVehicleInfo(response.data);
                 const userId = response.data.userId;
-                console.log(response.data)
+                // console.log(response.data)
                 if (userId) {
                     const userResponse = await axios.get(`${serverUrl}/user/${userId}`);
                     setUserDetils(userResponse.data.userDetails);
@@ -67,7 +67,7 @@ export default function DetailedCarInfo() {
         setSimilerLoadder(true)
         const similerCars = async () => {
             try {
-                const response = await axios.get(`${serverUrl}/similarcars/${vehicleInfo.category}`, {
+                const response = await axios.get(`${serverUrl}/similarcars/${vehicleInfo?.category}`, {
                     withCredentials: true,
                     headers: {
                         'SelectedCar': id
@@ -469,7 +469,7 @@ export default function DetailedCarInfo() {
                     {
                         isAuthenticated ?
                             <div className='h-40 w-full flex items-center'>
-                                <Link to={`/bookingpage`} className='w-full'>
+                                <Link to={`/bookingpage/${id}`} className='w-full'>
                                     <Button variant="outlined" className='w-full'>
                                         Get Rental
                                     </Button>

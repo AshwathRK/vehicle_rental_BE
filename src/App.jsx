@@ -67,7 +67,7 @@ export default function App() {
                             <BookingHistory />
                         </>
                     } />
-                    <Route path="/bookingpage" element={<BookingPage />}
+                    <Route path="/bookingpage/:id" element={<BookingPage />}
                     />
                 </Route>
             </Routes>

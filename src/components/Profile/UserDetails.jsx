@@ -209,7 +209,7 @@ export default function UserDetails() {
         if (event.target.files && event.target.files[0]) {
             const file = event.target.files[0];
             setPreviewImage(URL.createObjectURL(file));
-            console.log(previewImage)
+            // console.log(previewImage)
             setFileToUpload(file);
         }
     };
