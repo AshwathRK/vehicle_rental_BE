@@ -16,12 +16,11 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { MultiInputDateTimeRangeField } from '@mui/x-date-pickers-pro/MultiInputDateTimeRangeField';
 import dayjs from 'dayjs';
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import moment from 'moment/moment';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -33,19 +32,10 @@ export default function BookingPage() {
         activeStep: 0,
     });
 
-    const [bookingData, setBookingData] = useState({
-        startDate: '',
-        endDate: '',
-        carId: id,
-    });
-
     const [confirmBooking, setConfirmBooking] = useState({});
 
     const [tabValue, setTabValue] = React.useState('1');
-
-    const handleTabChange = (event, newValue) => {
-        setTabValue(newValue);
-    };
+    const [vehicleInfo, setVehicleInfo] = useState({});
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -80,9 +70,6 @@ export default function BookingPage() {
 
     }, []);
 
-    // console.log('Disabled Ranges:', disabledRanges);
-
-
     function isDateInRange(date, range) {
         return date >= range.start && date <= range.end;
     }
@@ -110,16 +97,17 @@ export default function BookingPage() {
 
     // ✅ Find next available date
     const nextAvailable = findNextAvailableDate(today, disabledRanges);
+    const nextAvailablePlus24Hours = moment(nextAvailable).add(24, 'hours');
 
     const [state, setState] = useState([
         {
             startDate: nextAvailable,
-            endDate: nextAvailable,
+            endDate: nextAvailablePlus24Hours,
             key: 'selection'
         }
     ]);
 
-    const [value, setValue] = useState([dayjs(nextAvailable), dayjs(nextAvailable)]);
+    const [value, setValue] = useState([dayjs(nextAvailable), dayjs(nextAvailablePlus24Hours)]);
 
 
     const disabledDates = [];
@@ -138,15 +126,66 @@ export default function BookingPage() {
 
     // Function to handle booking confirmation
     const handleConfirmBookingPage = () => {
-        debugger
-        setConfirmBooking({
-            startDate: value[0].format('YYYY-MM-DD HH:mm:ss'),
-            endDate: value[1].format('YYYY-MM-DD HH:mm:ss'),
-            carId: id,
-        });
+        // debugger
+        if (value && value.length === 2 && value[0] && value[1]) {
+            const startDate = value[0].format('YYYY-MM-DD HH:mm:ss');
+            const endDate = value[1].format('YYYY-MM-DD HH:mm:ss');
+
+            if (startDate && endDate) {
+                setConfirmBooking({
+                    startDate,
+                    endDate,
+                    carId: id,
+                });
+                setStepper((prev) => ({
+                    ...prev,
+                    activeStep: prev.activeStep + 1,
+                }));
+                setTabValue('2');
+            } else {
+                console.error('Error formatting dates');
+            }
+        } else {
+            console.error('Invalid date range');
+        }
     }
 
-    console.log('Booking Data:', bookingData);
+    console.log('Booking Data:', confirmBooking);
+
+    useEffect(() => {
+        const getVehicleData = async () => {
+            try {
+                const response = await axios.get(`${serverUrl}/vehicle/${id}`, { withCredentials: true });
+                if (response.status == 200) {
+                    setVehicleInfo(response.data);
+                } else {
+                    console.error('Error fetching vehicle data:', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error fetching vehicle data:', error);
+            }
+        }
+
+        getVehicleData()
+    }, [])
+
+    console.log('Vehicle Info:', vehicleInfo);
+
+    const [formData, setFormData] = useState({
+        name: '',
+        AddressLine1: '',
+        AddressLine2: '',
+        City: '',
+        state: '',
+        Zipcode: '',
+        Country: '',
+        mobile: '',
+    });
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+        // setStepper(2)
+    };
 
     return (
         <div className="h-[calc(99.8vh-78.4px)] flex relative top-[78px]">
@@ -225,6 +264,32 @@ export default function BookingPage() {
                                 color={stepper.activeStep < 2 ? 'primary' : 'success'}
                             >
                                 {stepper.activeStep < 2 ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                                    </svg>
+
+                                ) : (
+                                    <CheckRoundedIcon />
+                                )}
+                            </StepIndicator>
+                        }
+                    >
+                        <div>
+                            <Typography level="title-sm">Step 2</Typography>
+                            Choose Booking Address
+                        </div>
+                    </Step>
+
+                    <Step
+                        active={stepper.activeStep === 2}
+                        completed={stepper.activeStep > 2}
+                        indicator={
+                            <StepIndicator
+                                variant="solid"
+                                color={stepper.activeStep < 3 ? 'primary' : 'success'}
+                            >
+                                {stepper.activeStep < 3 ? (
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
@@ -246,14 +311,14 @@ export default function BookingPage() {
                         }
                     >
                         <div>
-                            <Typography level="title-sm">Step 2</Typography>
+                            <Typography level="title-sm">Step 3</Typography>
                             Booking Review
                         </div>
                     </Step>
 
                     <Step
-                        active={stepper.activeStep === 2}
-                        completed={stepper.activeStep > 2}
+                        active={stepper.activeStep === 3}
+                        completed={stepper.activeStep > 3}
                         indicator={
                             <StepIndicator variant="solid" color="primary">
                                 <AppRegistrationRoundedIcon />
@@ -261,7 +326,7 @@ export default function BookingPage() {
                         }
                     >
                         <div>
-                            <Typography level="title-sm">Step 3</Typography>
+                            <Typography level="title-sm">Step 4</Typography>
                             Payment details
                         </div>
                     </Step>
@@ -270,11 +335,8 @@ export default function BookingPage() {
             <div className="w-[80%] flex p-4 overflow-y-auto gap-4 flex-col items-center">
                 <Box sx={{ width: '100%', typography: 'body1' }}>
                     <TabContext value={tabValue}>
-                        <TabList onChange={handleTabChange} aria-label="lab API tabs example">
-                            <Tab label="Step 1" value="1" />
-                        </TabList>
                         <TabPanel value="1" gap-={2}>
-                            <div className='flex flex-col items-center gap-5'>
+                            <div className='flex flex-col items-center gap-3'>
                                 <h6 className='!text-[24px] poppins-bold'>Car Availability</h6>
                                 <div className="w-[60%]">
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -314,8 +376,201 @@ export default function BookingPage() {
                                 </div>
                                 <div className='flex justify-end gap-3 px-20'>
                                     <Button onClick={handleConfirmBookingPage} variant="contained" color="success">Confirm Booking Date</Button>
-                                    <Button>Cancel</Button>
+
+                                    <Link to={`/car/${id}`}>
+                                        <Button variant="outlined" color="primary">Back to Car Details</Button>
+                                    </Link>
+
+                                    {/* <Button>Cancel</Button> */}
                                 </div>
+                            </div>
+                        </TabPanel>
+                        <TabPanel value="2">
+                            <div className='flex flex-col overflow-y-auto h-[calc(100vh-176px)] border rounded'>
+                                {
+                                    vehicleInfo && Object.keys(vehicleInfo).length > 0 && vehicleInfo.delivery ? (
+                                        <div className='h-full w-full px-4 py-2 flex flex-col gap-3'>
+                                            <h6 className='flex poppins-semibold'>Delivery Address</h6>
+                                            <h6 className='!text-[13px] flex items-center px-1 m-0 poppins-semibold'>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="mx-1 size-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                                </svg>
+                                                This car can be delivered to your location. Kindly enter your address below.</h6>
+                                            <div className='flex flex-wrap gap-4'>
+                                                <div>
+                                                    <label htmlFor="name" className='poppins-semibold text-sm my-2'>Name</label>
+                                                    <input
+                                                        type="text"
+                                                        id="name"
+                                                        name="name"
+                                                        value={formData.name}
+                                                        onChange={handleChange}
+                                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px]`}
+                                                        placeholder='Tracy Lilibeth'
+                                                        aria-required="true"
+                                                        aria-label="Full Name"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="AddressLine1" className='poppins-semibold text-sm my-2'>Address Line 1</label>
+                                                    <input
+                                                        type="text"
+                                                        id="AddressLine1"
+                                                        name="AddressLine1"
+                                                        value={formData.AddressLine1}
+                                                        onChange={handleChange}
+                                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px]`}
+                                                        placeholder='17/1 G S T Road'
+                                                        aria-required="true"
+                                                        aria-label="Address Line 1"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="AddressLine2" className='poppins-semibold text-sm my-2'>Address Line 2</label>
+                                                    <input
+                                                        type="text"
+                                                        id="AddressLine2"
+                                                        name="AddressLine2"
+                                                        value={formData.AddressLine2}
+                                                        onChange={handleChange}
+                                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px]`}
+                                                        placeholder='St. Thomas Mount'
+                                                        aria-label="Address Line 2"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="City" className='poppins-semibold text-sm my-2'>City</label>
+                                                    <input
+                                                        type="text"
+                                                        id="City"
+                                                        name="City"
+                                                        value={formData.City}
+                                                        onChange={handleChange}
+                                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px]`}
+                                                        placeholder='Chennai'
+                                                        aria-required="true"
+                                                        aria-label="City"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="state" className='poppins-semibold text-sm my-2'>State</label>
+                                                    <input
+                                                        type="text"
+                                                        id="state"
+                                                        name="state"
+                                                        value={formData.state}
+                                                        onChange={handleChange}
+                                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px]`}
+                                                        placeholder='Tamil Nadu'
+                                                        aria-required="true"
+                                                        aria-label="State"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="Zipcode" className='poppins-semibold text-sm my-2'>Zip code</label>
+                                                    <input
+                                                        type="text"
+                                                        id="Zipcode"
+                                                        name="Zipcode"
+                                                        value={formData.Zipcode}
+                                                        onChange={handleChange}
+                                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px]`}
+                                                        placeholder='600016'
+                                                        aria-required="true"
+                                                        aria-label="Zip Code"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="Country" className='poppins-semibold text-sm my-2'>Country</label>
+                                                    <input
+                                                        type="text"
+                                                        id="Country"
+                                                        name="Country"
+                                                        value={formData.Country}
+                                                        onChange={handleChange}
+                                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px]`}
+                                                        placeholder='India'
+                                                        aria-required="true"
+                                                        aria-label="Country"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="mobile" className='poppins-semibold text-sm my-2'>Mobile</label>
+                                                    <input
+                                                        type="text"
+                                                        id="mobile"
+                                                        name="mobile"
+                                                        value={formData.mobile}
+                                                        onChange={handleChange}
+                                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px]`}
+                                                        placeholder='9876543210'
+                                                        aria-required="true"
+                                                        aria-label="Mobile Number"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : <div className='h-full w-full px-4 py-2 flex flex-col gap-3'>
+                                        <h6 className='flex poppins-semibold'>Delivery Address</h6>
+                                        <h6 className='!text-[13px] flex items-center px-1 m-0 poppins-semibold'>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="mx-1 size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                            </svg>
+                                            Home delivery is unavailable for this car. You can pick it up at the location mentioned below.</h6>
+                                        <div className='flex flex-col flex-wrap gap-4'>
+                                            <div className='flex gap-1'>
+                                                <h6 className='poppins-semibold !text-[13px]'>PickUp location: </h6>
+                                                <h6 className='poppins-reguler !text-[13px]'>{vehicleInfo.location?.pickup}</h6>
+                                            </div>
+
+                                            <div className='flex gap-1'>
+                                                <h6 className='poppins-semibold !text-[13px]'>Drop location: </h6>
+                                                <h6 className='poppins-reguler !text-[13px]'>{vehicleInfo.location?.dropoff}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                <div className='flex justify-end gap-3 px-20 py-3'>
+                                    <Button onClick={() => {
+                                        setTabValue('3'), setStepper((prev) => ({
+                                            ...prev,
+                                            activeStep: prev.activeStep + 1,
+                                        }));
+                                    }} variant="contained" color="success">Confirm Booking Address</Button>
+                                    <Button onClick={() => setTabValue('1')}>Back</Button>
+                                </div>
+                            </div>
+
+                        </TabPanel>
+                        <TabPanel value="3" className='p-0'>
+                            <div className='flex flex-col overflew-y-auto h-[calc(100vh-128px)] border rounded'>
+                                <div className='h-1/10 w-full border-b border-[#d4d4d4] flex items-center px-2'>
+                                    <h6 className='!text-[16px] poppins-bold'>Booking Summary</h6>
+                                </div>
+                                <div className='w-full h-9/10 p-0 m-0 flex'>
+                                    <div className='w-3/10 border-r border-[#d4d4d4] h-full'>
+
+                                    </div>
+                                    <div className='w-7/10 h-full flex flex-col gap-3 p-5'>
+
+                                    </div>
+                                </div>
+                                {/* <h6 className='!text-[24px] poppins-bold'>Review Your Booking</h6> */}
+                                {/* <div className='w-[60%] flex flex-col gap-3 border border-[#d4d4d4] rounded-lg p-5'>
+                                    <p className='!text-[18px] poppins-semibold'>Booking Start Date: {value[0].format('YYYY-MM-DD HH:mm:ss')}</p>
+                                    <p className='!text-[18px] poppins-semibold'>Booking End Date: {value[1].format('YYYY-MM-DD HH:mm:ss')}</p>
+                                </div> */}
+                                {/* <div className='flex justify-end gap-3 px-20'>
+                                    <Button onClick={() => setTabValue('3')} variant="contained" color="success">Proceed to Payment</Button>
+                                    <Button onClick={() => setTabValue('1')}>Back</Button>
+                                </div> */}
                             </div>
                         </TabPanel>
                     </TabContext>
