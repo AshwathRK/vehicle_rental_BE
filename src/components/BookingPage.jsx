@@ -36,6 +36,8 @@ export default function BookingPage() {
 
     const [tabValue, setTabValue] = React.useState('1');
     const [vehicleInfo, setVehicleInfo] = useState({});
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [vehicelCategory, setVehicelCategory] = useState('')
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -184,8 +186,33 @@ export default function BookingPage() {
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
-        // setStepper(2)
     };
+
+    const goToPrev = () => {
+        setCurrentIndex((prevIndex) => (prevIndex === 0 ? vehicleInfo?.images.length - 1 : prevIndex - 1));
+    };
+
+    const goToNext = () => {
+        setCurrentIndex((prevIndex) => (prevIndex === vehicleInfo?.images.length - 1 ? 0 : prevIndex + 1));
+    };
+
+    const currentImage = vehicleInfo?.images?.[currentIndex] ?? 'default-image-url.jpg';
+
+    useEffect(() => {
+        const getTheCategoryById = async () => {
+            if (!vehicleInfo?.category) return;
+            try {
+                const response = await axios.get(`${serverUrl}/categorie/${vehicleInfo.category}`);
+                setVehicelCategory(response.data?.category?.category);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        getTheCategoryById();
+    }, [vehicleInfo?.category]);
+
+    console.log('Form Data:', formData);
 
     return (
         <div className="h-[calc(99.8vh-78.4px)] flex relative top-[78px]">
@@ -555,21 +582,54 @@ export default function BookingPage() {
                                     <h6 className='!text-[16px] poppins-bold'>Booking Summary</h6>
                                 </div>
                                 <div className='w-full h-9/10 p-0 m-0 flex'>
-                                    <div className='w-3/10 border-r border-[#d4d4d4] h-full'>
+                                    <div className='w-3/10 border-r border-[#d4d4d4] h-full p-2'>
+                                        <h6 className='!text-[15px] poppins-bold'>Vehicle information</h6>
+                                        <div className='w-full h-[calc(100%-300px)] flex flex-col gap-3 overflow-y-auto'>
+                                            <div className="relative w-full h-full rounded overflow-hidden shadow">
+                                                <img
+                                                    src={`data:${currentImage?.contentType};base64,${currentImage?.data}`}
+                                                    alt={`Slide ${currentIndex}`}
+                                                    className="w-full h-full object-cover rounded"
+                                                />
 
+                                                {Array.isArray(vehicleInfo?.images) && vehicleInfo.images.length > 1 && (
+                                                    <>
+                                                        <button
+                                                            onClick={goToPrev}
+                                                            className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5" />
+                                                            </svg>
+
+                                                        </button>
+                                                        <button
+                                                            onClick={goToNext}
+                                                            className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5" />
+                                                            </svg>
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <h6 className='py-2 poppins-semibold !text-[14px]'>Drop Location: </h6>
+                                        <span className='poppins-regular !text-[13px]'>{`${formData.name} ${formData.AddressLine1} ${formData.AddressLine2} ${formData.City} ${formData.Country} - ${formData.Zipcode} Mobile: ${formData.mobile}`}</span>
                                     </div>
-                                    <div className='w-7/10 h-full flex flex-col gap-3 p-5'>
-
+                                    <div className='w-7/10 h-full flex flex-col p-5'>
+                                        <h4 className='poppins-bold !text-[30px]'>{`${vehicleInfo?.make}-${vehicleInfo?.model}`}</h4>
+                                        <p className='poppins-reguler !text-[15px] mb-2'>{`${vehicleInfo?.fuelType}.${vehicleInfo?.transmission}.${vehicelCategory}`}</p>
+                                        <div className='flex justify-end gap-3 px-20'>
+                                            <Button onClick={() => setTabValue('3')} variant="contained" color="success">Proceed to Payment</Button>
+                                            <Button onClick={() => setTabValue('1')}>Back</Button>
+                                        </div>
                                     </div>
                                 </div>
-                                {/* <h6 className='!text-[24px] poppins-bold'>Review Your Booking</h6> */}
                                 {/* <div className='w-[60%] flex flex-col gap-3 border border-[#d4d4d4] rounded-lg p-5'>
                                     <p className='!text-[18px] poppins-semibold'>Booking Start Date: {value[0].format('YYYY-MM-DD HH:mm:ss')}</p>
                                     <p className='!text-[18px] poppins-semibold'>Booking End Date: {value[1].format('YYYY-MM-DD HH:mm:ss')}</p>
-                                </div> */}
-                                {/* <div className='flex justify-end gap-3 px-20'>
-                                    <Button onClick={() => setTabValue('3')} variant="contained" color="success">Proceed to Payment</Button>
-                                    <Button onClick={() => setTabValue('1')}>Back</Button>
                                 </div> */}
                             </div>
                         </TabPanel>
