@@ -174,6 +174,7 @@ export default function DetailedCarInfo() {
     // console.log(similarcars)
 
     const weeklyDiscount = () => {
+        // debugger
         const day = vehicleInfo?.pricePerDay
         if (vehicleInfo?.discounts.weekly) {
             const weekly = day - (day * (vehicleInfo?.discounts.weekly / 100))

@@ -21,6 +21,7 @@ import TabPanel from '@mui/lab/TabPanel';
 import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 import moment from 'moment/moment';
+import { DateTime } from 'luxon';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -38,6 +39,7 @@ export default function BookingPage() {
     const [vehicleInfo, setVehicleInfo] = useState({});
     const [currentIndex, setCurrentIndex] = useState(0);
     const [vehicelCategory, setVehicelCategory] = useState('')
+    const [duration, setDuration] = useState(0);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -123,8 +125,21 @@ export default function BookingPage() {
         }
     });
 
-    console.log(value[0].format('YYYY-MM-DD HH:mm:ss'));
-    console.log(value[1].format('YYYY-MM-DD HH:mm:ss'));
+    const startDate = new Date(value[0]);
+    const endDate = new Date(value[1]);
+
+    useEffect(() => {
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+            const durationInHours = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600));
+            console.log(startDate.toISOString().replace('T', ' ').slice(0, -5));
+            console.log(endDate.toISOString().replace('T', ' ').slice(0, -5));
+            setDuration(durationInHours);
+        } else {
+            console.log("Invalid input");
+        }
+    }, [startDate, endDate]);
+
+    console.log(duration);
 
     // Function to handle booking confirmation
     const handleConfirmBookingPage = () => {
@@ -202,7 +217,7 @@ export default function BookingPage() {
         const getTheCategoryById = async () => {
             if (!vehicleInfo?.category) return;
             try {
-                const response = await axios.get(`${serverUrl}/categorie/${vehicleInfo.category}`);
+                const response = await axios.get(`${serverUrl}/categorie/${vehicleInfo?.category}`);
                 setVehicelCategory(response.data?.category?.category);
             } catch (error) {
                 console.log(error);
@@ -211,6 +226,23 @@ export default function BookingPage() {
 
         getTheCategoryById();
     }, [vehicleInfo?.category]);
+
+    // Define a function to calculate the booking total
+    const calculateBookingTotal = () => {
+        // debugger
+        const totalPrice = Math.floor(duration / 24) * vehicleInfo?.pricePerDay + (duration % 24) * vehicleInfo?.pricePerHour;
+        let discount = 0;
+        if (duration >= 672) {
+            discount = vehicleInfo?.discounts?.monthly || 0;
+            return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
+        }
+        else if (duration >= 168) {
+            discount = vehicleInfo?.discounts?.weekly || 0;
+            return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
+        }
+        return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
+
+    }
 
     console.log('Form Data:', formData);
 
@@ -401,6 +433,7 @@ export default function BookingPage() {
                                         disabledDates={disabledDates.map(date => date.getTime())}
                                     />
                                 </div>
+                                <h6 className='!text-[14px]'><span className='poppins-semibold'>Please note:</span> Bookings made in minutes will be rounded up and charged at the hourly rate.</h6>
                                 <div className='flex justify-end gap-3 px-20'>
                                     <Button onClick={handleConfirmBookingPage} variant="contained" color="success">Confirm Booking Date</Button>
 
@@ -571,7 +604,13 @@ export default function BookingPage() {
                                             activeStep: prev.activeStep + 1,
                                         }));
                                     }} variant="contained" color="success">Confirm Booking Address</Button>
-                                    <Button onClick={() => setTabValue('1')}>Back</Button>
+                                    <Button onClick={() => {
+                                        setTabValue('1'),
+                                            setStepper((prev) => ({
+                                                ...prev,
+                                                activeStep: prev.activeStep - 1,
+                                            }));
+                                    }}>Back</Button>
                                 </div>
                             </div>
 
@@ -615,15 +654,52 @@ export default function BookingPage() {
                                                 )}
                                             </div>
                                         </div>
-                                        <h6 className='py-2 poppins-semibold !text-[14px]'>Drop Location: </h6>
-                                        <span className='poppins-regular !text-[13px]'>{`${formData.name} ${formData.AddressLine1} ${formData.AddressLine2} ${formData.City} ${formData.Country} - ${formData.Zipcode} Mobile: ${formData.mobile}`}</span>
+                                        {
+                                            vehicleInfo.delivery ?
+                                                <>
+                                                    <h6 className='py-2 poppins-semibold !text-[14px]'>Drop Location: </h6>
+                                                    <span className='poppins-regular !text-[13px]'>{`${formData.name} ${formData.AddressLine1} ${formData.AddressLine2} ${formData.City} ${formData.Country} - ${formData.Zipcode} Mobile: ${formData.mobile}`}</span>
+                                                </> :
+                                                <>
+                                                    <h6 className='py-2 poppins-semibold !text-[14px]'>PickUp location: </h6>
+                                                    <span className='poppins-regular !text-[13px]'>{`${vehicleInfo?.location?.pickup}`}</span>
+
+                                                    <h6 className='py-2 poppins-semibold !text-[14px]'>Drop location: </h6>
+                                                    <span className='poppins-regular !text-[13px]'>{`${vehicleInfo?.location?.dropoff}`}</span>
+                                                </>
+                                        }
                                     </div>
                                     <div className='w-7/10 h-full flex flex-col p-5'>
                                         <h4 className='poppins-bold !text-[30px]'>{`${vehicleInfo?.make}-${vehicleInfo?.model}`}</h4>
                                         <p className='poppins-reguler !text-[15px] mb-2'>{`${vehicleInfo?.fuelType}.${vehicleInfo?.transmission}.${vehicelCategory}`}</p>
+                                        {/* <p className='poppins-reguler !text-[14px]'><span className='poppins-semibold'>Booking Start Date:</span> {value[0].format('DD-MM-YYYY')}</p> */}
+                                        <div className='flex gap-3 flex-wrap pb-3'>
+                                            <div>
+                                                <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Booking Start Date:</label>
+                                                <input type="text" name="newPassword" value={value[0].format('DD-MM-YYYY')} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="newPassword" className='poppins-semibold text-sm my-2'>Booking End Date:</label>
+                                                <input type="text" name="newPassword" value={value[1].format('DD-MM-YYYY')} disabled className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] bg-zinc-100`} placeholder='New password' />
+                                            </div>
+                                        </div>
+                                        <p className='poppins-reguler !text-[14px]'> <span className='poppins-semibold'>Fuel Policy:</span> {vehicleInfo.fuelPolicy}</p>
+                                        <p className='poppins-reguler !text-[14px]'><span className='poppins-semibold'>Booking Duration:</span> {`${Math.floor(duration / 24)} days ${duration % 24} hours`}</p>
+                                        {/* <p className='poppins-reguler !text-[14px]'><span className='poppins-semibold'>Booking Price:</span> ₹{vehicleInfo?.pricePerDay * duration}</p> */}
+                                        <p className='poppins-reguler !text-[14px]'>
+                                            <span className='poppins-semibold'>Booking Total:</span>
+                                            ₹{calculateBookingTotal()}
+                                        </p>
+
+
                                         <div className='flex justify-end gap-3 px-20'>
                                             <Button onClick={() => setTabValue('3')} variant="contained" color="success">Proceed to Payment</Button>
-                                            <Button onClick={() => setTabValue('1')}>Back</Button>
+                                            <Button onClick={() => {
+                                                setTabValue('2'), setStepper((prev) => ({
+                                                    ...prev,
+                                                    activeStep: prev.activeStep - 1,
+                                                }));
+                                            }}>Back</Button>
                                         </div>
                                     </div>
                                 </div>
