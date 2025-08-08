@@ -22,6 +22,7 @@ import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 import moment from 'moment/moment';
 import { DateTime } from 'luxon';
+import { set } from 'date-fns';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -40,6 +41,10 @@ export default function BookingPage() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [vehicelCategory, setVehicelCategory] = useState('')
     const [duration, setDuration] = useState(0);
+    const [finalPrice, setFinalPrice] = useState(0);
+
+    const accessToken = sessionStorage.getItem('accessToken');
+    const deviceId = sessionStorage.getItem('deviceId');
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -58,21 +63,18 @@ export default function BookingPage() {
 
     useEffect(() => {
         const getBookingData = async () => {
-            // Fetch booking data from the server or perform any necessary operations
             try {
-                const response = await axios.get(`${serverUrl}/booking/car/${id}`,
-                    { withCredentials: true });
-                // Process the response data as needed
+                const response = await axios.get(`${serverUrl}/booking/car/${id}`, {
+                    withCredentials: true,
+                });
                 setDisabledRanges(response.data.data || []);
-                console.log(response.data);
             } catch (error) {
-                console.error('Error fetching booking data:', error);
+                console.error("Error fetching booking data:", error);
             }
-        }
+        };
 
         getBookingData();
-
-    }, []);
+    }, [id, serverUrl]); // Add dependencies to control when the effect runs
 
     function isDateInRange(date, range) {
         return date >= range.start && date <= range.end;
@@ -228,23 +230,56 @@ export default function BookingPage() {
     }, [vehicleInfo?.category]);
 
     // Define a function to calculate the booking total
-    const calculateBookingTotal = () => {
-        // debugger
+    useEffect(() => {
+        const calculateBookingTotal = () => {
         const totalPrice = Math.floor(duration / 24) * vehicleInfo?.pricePerDay + (duration % 24) * vehicleInfo?.pricePerHour;
         let discount = 0;
         if (duration >= 672) {
             discount = vehicleInfo?.discounts?.monthly || 0;
+            setFinalPrice((totalPrice - (totalPrice * discount / 100)).toFixed(2));
             return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
-        }
-        else if (duration >= 168) {
+        } else if (duration >= 168) {
             discount = vehicleInfo?.discounts?.weekly || 0;
+            setFinalPrice((totalPrice - (totalPrice * discount / 100)).toFixed(2));
             return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
         }
+        setFinalPrice((totalPrice - (totalPrice * discount / 100)).toFixed(2));
         return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
-
     }
 
-    console.log('Form Data:', formData);
+        calculateBookingTotal();
+    }, [duration, vehicleInfo]);
+
+    // console.log('Form Data:', formData);
+    const handlePayment = async () => {
+        debugger
+        try {
+            const response = await axios.post(`${serverUrl}/payment`, {
+                headers: { 
+                    "Content-Type": "application/json" ,
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Device-Id': deviceId,
+                },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email || '',
+                    amount: finalPrice,
+                })
+            }, { withCredentials: true });
+
+            const data = await response.json();
+
+            if (data.url) {
+                // ✅ Redirect to Razorpay hosted payment page
+                window.location.href = data.url;
+            } else {
+                alert("Failed to create payment page.");
+            }
+        } catch (error) {
+            console.error("Error during payment:", error);
+            alert("Something went wrong.");
+        }
+    }
 
     return (
         <div className="h-[calc(99.8vh-78.4px)] flex relative top-[78px]">
@@ -688,12 +723,12 @@ export default function BookingPage() {
                                         {/* <p className='poppins-reguler !text-[14px]'><span className='poppins-semibold'>Booking Price:</span> ₹{vehicleInfo?.pricePerDay * duration}</p> */}
                                         <p className='poppins-reguler !text-[14px]'>
                                             <span className='poppins-semibold'>Booking Total:</span>
-                                            ₹{calculateBookingTotal()}
+                                            ₹{finalPrice}
                                         </p>
 
 
                                         <div className='flex justify-end gap-3 px-20'>
-                                            <Button onClick={() => setTabValue('3')} variant="contained" color="success">Proceed to Payment</Button>
+                                            <Button onClick={handlePayment} variant="contained" color="success">Proceed to Payment</Button>
                                             <Button onClick={() => {
                                                 setTabValue('2'), setStepper((prev) => ({
                                                     ...prev,
@@ -703,10 +738,6 @@ export default function BookingPage() {
                                         </div>
                                     </div>
                                 </div>
-                                {/* <div className='w-[60%] flex flex-col gap-3 border border-[#d4d4d4] rounded-lg p-5'>
-                                    <p className='!text-[18px] poppins-semibold'>Booking Start Date: {value[0].format('YYYY-MM-DD HH:mm:ss')}</p>
-                                    <p className='!text-[18px] poppins-semibold'>Booking End Date: {value[1].format('YYYY-MM-DD HH:mm:ss')}</p>
-                                </div> */}
                             </div>
                         </TabPanel>
                     </TabContext>
