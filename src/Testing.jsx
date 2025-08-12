@@ -1,63 +1,73 @@
-<div className='h-[calc(99.8vh-78.4px)] flex flex-col lg:flex-row relative top-[78px]'>
-    <div className='lg:w-7/10 w-full overflow-y-auto hide-scrollbar'>
-        {/* Vehicle details */}
-        <div className='w-full gb-lower h-135 flex justify-center items-center'>
-            <div className="relative w-230 h-125 my-4 overflow-hidden">
-                <img
-                    src={`data:${currentImage?.contentType};base64,${currentImage?.data}`}
-                    alt={`Slide ${currentIndex}`}
-                    className="w-full h-full object-contain"
-                />
+import React, { useState } from 'react';
+import axios from 'axios';
 
-                {vehicleInfo?.images.length > 1 && (
-                    <>
-                        <button
-                            onClick={goToPrev}
-                            className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white border-black border rounded bg-opacity-50 text-white p-1 "
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="black" class="size-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5" />
-                            </svg>
+const PaymentButton = ({ bookingPrice }) => {
+  const [loading, setLoading] = useState(false);
 
-                        </button>
-                        <button
-                            onClick={goToNext}
-                            className="absolute top-1/2 right-2 transform -translate-y-1/2 border border-black bg-white rounded bg-opacity-50 text-white p-1"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="black" class="size-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5" />
-                            </svg>
+  const handlePayment = async () => {
+    try {
+      setLoading(true);
 
-                        </button>
-                    </>
-                )}
-            </div>
-        </div>
-        <div className='w-full gb-lower px-4 lg:px-20 h-full flex flex-col'>
-            {/* Vehicle info */}
-            <div className='w-full h-[100px] flex border-b border-[#d4d4d4]'>
-                {/* Host info */}
-            </div>
-            <div className='w-full h-20 border mt-2 rounded px-3 py-2'>
-                {/* Car location */}
-            </div>
-            <h6 className='!text-[13px] mt-3 poppins-semibold mb-0'>Ratings & Review</h6>
-            <div className='w-full h-62 border mt-2 rounded px-3 py-2'>
-                {/* Ratings and reviews */}
-            </div>
-            <h6 className='!text-[13px] mt-3 poppins-semibold mb-2'>Similar Listings</h6>
-            {/* Similar listings */}
-        </div>
-    </div>
-    <div className='lg:w-3/10 w-full lg:sticky lg:top-20 lg:h-screen h-auto bg-[#f0eded] flex flex-col px-4'>
-        {/* Features and pricing */}
-        <h6 className='!text-[15px] my-4 poppins-semibold mid'>Features</h6>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 border-b border-[#d4d4d4]">
-            {/* Features list */}
-        </div>
-        <h6 className='!text-[15px] my-4 poppins-semibold mid'>Pricing</h6>
-        <div className='w-full h-[300px] flex flex-col items-end'>
-            {/* Pricing details */}
-        </div>
-    </div>
-</div>
+      // 1️⃣ Create order on backend with dynamic amount
+      const { data: order } = await axios.post(
+        'http://localhost:3000/api/payment/order',
+        { amount: bookingPrice }, // dynamic from props or state
+        { withCredentials: true }
+      );
+
+      // 2️⃣ Razorpay options
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Vehicle Rent Zone',
+        description: `Payment for booking worth ₹${bookingPrice}`,
+        order_id: order.id,
+        handler: async function (response) {
+          const verifyRes = await axios.post(
+            'http://localhost:3000/api/payment/verify',
+            {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            },
+            { withCredentials: true }
+          );
+
+          if (verifyRes.data.success) {
+            alert('✅ Payment successful!');
+          } else {
+            alert('❌ Payment verification failed!');
+          }
+        },
+        prefill: {
+          name: 'John Doe',
+          email: 'john@example.com',
+          contact: '9876543210',
+        },
+        theme: { color: '#3399cc' },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (err) {
+      console.error(err);
+      alert('Payment initiation failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handlePayment}
+      disabled={loading}
+      className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+    >
+      {loading ? 'Processing...' : `Pay ₹${bookingPrice}`}
+    </button>
+  );
+};
+
+export default PaymentButton;

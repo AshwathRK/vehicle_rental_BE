@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { use, useEffect } from 'react';
 import Stepper from '@mui/joy/Stepper';
 import Step, { stepClasses } from '@mui/joy/Step';
 import StepIndicator, { stepIndicatorClasses } from '@mui/joy/StepIndicator';
@@ -21,11 +21,12 @@ import TabPanel from '@mui/lab/TabPanel';
 import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 import moment from 'moment/moment';
-import { DateTime } from 'luxon';
-import { set } from 'date-fns';
+import { add } from 'date-fns';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
+const RAZORPAY_KEY_SECRET = import.meta.env.RAZORPAY_KEY_SECRET
 
 export default function BookingPage() {
     const { id } = useParams();
@@ -43,8 +44,7 @@ export default function BookingPage() {
     const [duration, setDuration] = useState(0);
     const [finalPrice, setFinalPrice] = useState(0);
 
-    const accessToken = sessionStorage.getItem('accessToken');
-    const deviceId = sessionStorage.getItem('deviceId');
+    const [loading, setLoading] = useState(false);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -60,6 +60,35 @@ export default function BookingPage() {
     };
 
     const [disabledRanges, setDisabledRanges] = React.useState([]);
+    const [userInfo, setUserInfo] = useState({});
+
+    const accessToken = sessionStorage.getItem('accessToken');
+    const deviceId = sessionStorage.getItem('deviceId');
+
+    useEffect(() => {
+        const verifyUserAuthentication = async () => {
+            try {
+                const response = await axios.get(`${serverUrl}`, {
+                    withCredentials: true,
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Device-Id': deviceId
+                    }
+                });
+
+                if (response.status === 200 && response.data) {
+                    setUserInfo(response.data.user || {});
+                } else {
+                    sessionStorage.clear();
+                }
+            } catch (error) {
+                console.error('Authentication Failed:', error);
+                sessionStorage.clear();
+            }
+        };
+
+        verifyUserAuthentication();
+    }, []);
 
     useEffect(() => {
         const getBookingData = async () => {
@@ -141,11 +170,8 @@ export default function BookingPage() {
         }
     }, [startDate, endDate]);
 
-    console.log(duration);
-
     // Function to handle booking confirmation
     const handleConfirmBookingPage = () => {
-        // debugger
         if (value && value.length === 2 && value[0] && value[1]) {
             const startDate = value[0].format('YYYY-MM-DD HH:mm:ss');
             const endDate = value[1].format('YYYY-MM-DD HH:mm:ss');
@@ -169,14 +195,12 @@ export default function BookingPage() {
         }
     }
 
-    console.log('Booking Data:', confirmBooking);
-
     useEffect(() => {
         const getVehicleData = async () => {
             try {
                 const response = await axios.get(`${serverUrl}/vehicle/${id}`, { withCredentials: true });
                 if (response.status == 200) {
-                    setVehicleInfo(response.data);
+                    setVehicleInfo(response.data)
                 } else {
                     console.error('Error fetching vehicle data:', response.data.message);
                 }
@@ -184,7 +208,6 @@ export default function BookingPage() {
                 console.error('Error fetching vehicle data:', error);
             }
         }
-
         getVehicleData()
     }, [])
 
@@ -193,6 +216,7 @@ export default function BookingPage() {
     const [formData, setFormData] = useState({
         name: '',
         AddressLine1: '',
+        email: '',
         AddressLine2: '',
         City: '',
         state: '',
@@ -232,54 +256,98 @@ export default function BookingPage() {
     // Define a function to calculate the booking total
     useEffect(() => {
         const calculateBookingTotal = () => {
-        const totalPrice = Math.floor(duration / 24) * vehicleInfo?.pricePerDay + (duration % 24) * vehicleInfo?.pricePerHour;
-        let discount = 0;
-        if (duration >= 672) {
-            discount = vehicleInfo?.discounts?.monthly || 0;
-            setFinalPrice((totalPrice - (totalPrice * discount / 100)).toFixed(2));
-            return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
-        } else if (duration >= 168) {
-            discount = vehicleInfo?.discounts?.weekly || 0;
+            const totalPrice = Math.floor(duration / 24) * vehicleInfo?.pricePerDay + (duration % 24) * vehicleInfo?.pricePerHour;
+            let discount = 0;
+            if (duration >= 672) {
+                discount = vehicleInfo?.discounts?.monthly || 0;
+                setFinalPrice((totalPrice - (totalPrice * discount / 100)).toFixed(2));
+                return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
+            } else if (duration >= 168) {
+                discount = vehicleInfo?.discounts?.weekly || 0;
+                setFinalPrice((totalPrice - (totalPrice * discount / 100)).toFixed(2));
+                return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
+            }
             setFinalPrice((totalPrice - (totalPrice * discount / 100)).toFixed(2));
             return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
         }
-        setFinalPrice((totalPrice - (totalPrice * discount / 100)).toFixed(2));
-        return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
-    }
 
         calculateBookingTotal();
     }, [duration, vehicleInfo]);
 
-    // console.log('Form Data:', formData);
     const handlePayment = async () => {
         debugger
         try {
-            const response = await axios.post(`${serverUrl}/payment`, {
-                headers: { 
-                    "Content-Type": "application/json" ,
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Device-Id': deviceId,
-                },
-                body: JSON.stringify({
-                    name: formData.name,
-                    email: formData.email || '',
-                    amount: finalPrice,
-                })
-            }, { withCredentials: true });
+            setLoading(true);
 
-            const data = await response.json();
+            // Store the date to the database
+            const payload = {
+                carId: id,
+                userId: userInfo?._id,
+                startDateTime: value[0].format('YYYY-MM-DD HH:mm:ss'),
+                endDateTime: value[1].format('YYYY-MM-DD HH:mm:ss'),
+                status: 'Pending',
+                address: vehicleInfo?.delivery ? formData : undefined,
+                pickup: !vehicleInfo?.delivery ? vehicleInfo?.location.pickup : undefined,
+            };
 
-            if (data.url) {
-                // ✅ Redirect to Razorpay hosted payment page
-                window.location.href = data.url;
-            } else {
-                alert("Failed to create payment page.");
+            const response = await axios.post(`${serverUrl}/booking`, payload, { withCredentials: true });
+
+            if (response.status === 200) {
+                console.log('Booking confirmed:', response.data);
             }
-        } catch (error) {
-            console.error("Error during payment:", error);
-            alert("Something went wrong.");
+
+            // 1️⃣ Create order on backend with dynamic amount
+            // const { data: order } = await axios.post(
+            //     'http://localhost:3000/order',
+            //     { amount: finalPrice }, // dynamic from props or state
+            //     { withCredentials: true }
+            // );
+
+            // 2️⃣ Razorpay options
+            // const options = {
+            //     key: RAZORPAY_KEY_ID,
+            //     amount: order.amount,
+            //     currency: order.currency,
+            //     name: 'Vehicle Rent Zone',
+            //     description: `Payment for booking worth ₹${finalPrice}`,
+            //     order_id: order.id,
+            //     handler: async function (response) {
+            //         const verifyRes = await axios.post(
+            //             'http://localhost:3000/verify',
+            //             {
+            //                 razorpay_order_id: response.razorpay_order_id,
+            //                 razorpay_payment_id: response.razorpay_payment_id,
+            //                 razorpay_signature: response.razorpay_signature,
+            //             },
+            //             { withCredentials: true }
+            //         );
+
+            //         if (verifyRes.data.success) {
+            //             alert('✅ Payment successful!');
+            //         } else {
+            //             alert('❌ Payment verification failed!');
+            //         }
+            //     },
+            //     prefill: {
+            //         name: formData.name || '',
+            //         email: formData.email || '',
+            //         contact: formData.mobile || '',
+            //     },
+            //     theme: { color: '#3399cc' },
+            // };
+
+            // const rzp = new window.Razorpay(options);
+            // rzp.open();
+
+        } catch (err) {
+            console.error(err);
+            alert('Payment initiation failed');
+        } finally {
+            setLoading(false);
         }
-    }
+
+    };
+
 
     return (
         <div className="h-[calc(99.8vh-78.4px)] flex relative top-[78px]">
@@ -504,6 +572,21 @@ export default function BookingPage() {
                                                         placeholder='Tracy Lilibeth'
                                                         aria-required="true"
                                                         aria-label="Full Name"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="email" className='poppins-semibold text-sm my-2'>Email</label>
+                                                    <input
+                                                        type="email"
+                                                        id="email"
+                                                        name="email"
+                                                        value={formData.email}
+                                                        onChange={handleChange}
+                                                        className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px]`}
+                                                        placeholder='Tracy Lilibeth'
+                                                        aria-required="true"
+                                                        aria-label="Email"
                                                     />
                                                 </div>
 
