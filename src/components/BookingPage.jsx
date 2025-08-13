@@ -19,8 +19,11 @@ import Box from '@mui/material/Box';
 import TabContext from '@mui/lab/TabContext';
 import TabPanel from '@mui/lab/TabPanel';
 import axios from 'axios';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment/moment';
+import Modal from '@mui/joy/Modal';
+import ModalClose from '@mui/joy/ModalClose';
+import Sheet from '@mui/joy/Sheet';
 import { add } from 'date-fns';
 
 // === Load server URL from environment ===
@@ -45,6 +48,8 @@ export default function BookingPage() {
     const [finalPrice, setFinalPrice] = useState(0);
 
     const [loading, setLoading] = useState(false);
+    const [open, setOpen] = React.useState(false);
+    const navigator = useNavigate();
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -275,7 +280,7 @@ export default function BookingPage() {
     }, [duration, vehicleInfo]);
 
     const handlePayment = async () => {
-        debugger
+        // debugger
         try {
             setLoading(true);
 
@@ -292,52 +297,54 @@ export default function BookingPage() {
 
             const response = await axios.post(`${serverUrl}/booking`, payload, { withCredentials: true });
 
-            if (response.status === 200) {
-                console.log('Booking confirmed:', response.data);
+            if (response.status === 201) {
+                // console.log('Booking confirmed:', response.data);
+                // 1️⃣ Create order on backend with dynamic amount
+                const { data: order } = await axios.post(
+                    `${serverUrl}/order`,
+                    { amount: finalPrice }, // dynamic from props or state
+                    { withCredentials: true }
+                );
+
+                console.log('Order created:', order);
+                // 2️⃣ Razorpay options
+                const options = {
+                    key: RAZORPAY_KEY_ID,
+                    amount: order.amount,
+                    currency: order.currency,
+                    name: 'Vehicle Rent Zone',
+                    description: `Payment for booking worth ₹${finalPrice}`,
+                    order_id: order.id,
+                    handler: async function (response) {
+                        const verifyRes = await axios.post(
+                            `${serverUrl}/verify`,
+                            {
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                            },
+                            { withCredentials: true }
+                        );
+
+                        if (verifyRes.data.success) {
+                            setOpen(true);
+                        } else {
+                            alert('❌ Payment verification failed!');
+                        }
+                    },
+                    prefill: {
+                        name: formData.name || '',
+                        email: formData.email || '',
+                        contact: formData.mobile || '',
+                    },
+                    theme: { color: '#3399cc' },
+                };
+
+                const rzp = new window.Razorpay(options);
+                rzp.open();
             }
 
-            // 1️⃣ Create order on backend with dynamic amount
-            // const { data: order } = await axios.post(
-            //     'http://localhost:3000/order',
-            //     { amount: finalPrice }, // dynamic from props or state
-            //     { withCredentials: true }
-            // );
 
-            // 2️⃣ Razorpay options
-            // const options = {
-            //     key: RAZORPAY_KEY_ID,
-            //     amount: order.amount,
-            //     currency: order.currency,
-            //     name: 'Vehicle Rent Zone',
-            //     description: `Payment for booking worth ₹${finalPrice}`,
-            //     order_id: order.id,
-            //     handler: async function (response) {
-            //         const verifyRes = await axios.post(
-            //             'http://localhost:3000/verify',
-            //             {
-            //                 razorpay_order_id: response.razorpay_order_id,
-            //                 razorpay_payment_id: response.razorpay_payment_id,
-            //                 razorpay_signature: response.razorpay_signature,
-            //             },
-            //             { withCredentials: true }
-            //         );
-
-            //         if (verifyRes.data.success) {
-            //             alert('✅ Payment successful!');
-            //         } else {
-            //             alert('❌ Payment verification failed!');
-            //         }
-            //     },
-            //     prefill: {
-            //         name: formData.name || '',
-            //         email: formData.email || '',
-            //         contact: formData.mobile || '',
-            //     },
-            //     theme: { color: '#3399cc' },
-            // };
-
-            // const rzp = new window.Razorpay(options);
-            // rzp.open();
 
         } catch (err) {
             console.error(err);
@@ -823,9 +830,56 @@ export default function BookingPage() {
                                 </div>
                             </div>
                         </TabPanel>
+                        <TabPanel value="4">
+                            <div className='flex flex-col overflow-y-auto h-[calc(94vh-128px)] border rounded'>
+                            </div>
+                        </TabPanel>
                     </TabContext>
                 </Box>
             </div>
+            {
+                open && (
+                    <React.Fragment>
+                        <Modal
+                            aria-labelledby="modal-title"
+                            aria-describedby="modal-desc"
+                            open={open}
+                            onClose={() => setOpen(false)}
+                            sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                        >
+                            <Sheet
+                                variant="outlined"
+                                sx={{ maxWidth: 500, borderRadius: 'md', p: 3, boxShadow: 'lg' }}
+                            >
+                                <ModalClose onClick={() => {
+                                    setStepper((prev) => ({
+                                        ...prev,
+                                        activeStep: prev.activeStep + 1,
+                                    }));
+                                    setTabValue('4');
+                                }} variant="plain" sx={{ m: 1 }} />
+                                <Typography
+                                    component="h2"
+                                    id="modal-title"
+                                    level="h4"
+                                    textColor="inherit"
+                                    sx={{ fontWeight: 'lg', mb: 1 }}
+                                >
+                                    <div className='flex items-center gap-2'>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="green" class="size-9">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+                                        </svg>
+                                        Payment Successful!
+                                    </div>
+                                </Typography>
+                                <Typography id="modal-desc" textColor="text.tertiary">
+                                    Your booking is confirmed. We’ve sent the details to your registered email. Thank you for choosing us!
+                                </Typography>
+                            </Sheet>
+                        </Modal>
+                    </React.Fragment>
+                )
+            }
         </div>
     );
 }
