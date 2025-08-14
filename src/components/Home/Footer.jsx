@@ -19,6 +19,7 @@ export default function Footer() {
                         <img src="./twitter.png" className='w-6 invert' />
                     </a>
                 </div>
+                <img src="/Home/2-removebg-preview.png" className='w-40 py-4'/>
             </div>
             <div className='w-full lg:w-3/5 flex flex-col lg:flex-row px-0 my-5 lg:px-20'>
                 <div className='w-full lg:w-1/3 h-full mb-8 lg:mb-0'>

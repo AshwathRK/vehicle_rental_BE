@@ -72,7 +72,7 @@ export default function Navbar() {
     return (
         <div className='Navbar px-4 w-full md:px-16 h-20 border-b-2 border-white flex items-center fixed top-0 justify-between md:justify-around shadow-sm bg-mid z-300'>
             <Link to='/' className='!no-underline'>
-                <img src='/Home/Logo.png' className='w-10 mx-2 md:mx-5 navLogo cursor-pointer invert' alt="car logo" />
+                <img src='/Home/2-removebg-preview.png' className='w-45 mx-2 md:mx-5 cursor-pointer' alt="car logo" />
             </Link>
 
             <ul className={` ${mobileMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row w-full md:w-50 justify-around items-center h-[130px] md:h-full absolute md:relative bg-mid md:bg-transparent top-20 left-0 my-0 md:top-auto md:left-auto z-40 pt-10 md:pt-0 overflow-x-hidden overflow-y-auto`}>
