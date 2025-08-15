@@ -280,7 +280,7 @@ export default function BookingPage() {
     }, [duration, vehicleInfo]);
 
     const handlePayment = async () => {
-        // debugger
+        debugger
         try {
             setLoading(true);
 
@@ -296,6 +296,8 @@ export default function BookingPage() {
             };
 
             const response = await axios.post(`${serverUrl}/booking`, payload, { withCredentials: true });
+
+            const bookingId = response.data?.data?._id;
 
             if (response.status === 201) {
                 // console.log('Booking confirmed:', response.data);
@@ -327,7 +329,18 @@ export default function BookingPage() {
                         );
 
                         if (verifyRes.data.success) {
-                            setOpen(true);
+                            try {
+                                const bookingResponse = await axios.put(`${serverUrl}/booking/${bookingId}`, {
+                                    status: 'Confirmed',
+                                    paymentId: response.razorpay_payment_id,
+                                }, { withCredentials: true });
+                                console.log('Booking updated:', bookingResponse.data);
+                            } catch (error) {
+                                console.error('Error updating booking status:', error);
+                            }
+                            finally {
+                                setOpen(true);
+                            }
                         } else {
                             alert('❌ Payment verification failed!');
                         }
@@ -485,7 +498,7 @@ export default function BookingPage() {
                         </div>
                     </Step>
 
-                    <Step
+                    {/* <Step
                         active={stepper.activeStep === 3}
                         completed={stepper.activeStep > 3}
                         indicator={
@@ -498,7 +511,7 @@ export default function BookingPage() {
                             <Typography level="title-sm">Step 4</Typography>
                             Payment details
                         </div>
-                    </Step>
+                    </Step> */}
                 </Stepper>
             </div>
             <div className="w-[80%] flex p-4 overflow-y-auto gap-4 flex-col items-center">
@@ -830,10 +843,10 @@ export default function BookingPage() {
                                 </div>
                             </div>
                         </TabPanel>
-                        <TabPanel value="4">
+                        {/* <TabPanel value="4">
                             <div className='flex flex-col overflow-y-auto h-[calc(94vh-128px)] border rounded'>
                             </div>
-                        </TabPanel>
+                        </TabPanel> */}
                     </TabContext>
                 </Box>
             </div>

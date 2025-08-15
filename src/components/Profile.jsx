@@ -8,6 +8,7 @@ import PrivateRoute from '../PrivateRoute';
 import axios from 'axios';
 import { ClimbingBoxLoader } from 'react-spinners';
 import CarInfo from './Profile/CarInfo';
+import BookingHistory from './Profile/BookingHistory';
 
 
 // === Load server URL from environment ===
@@ -127,7 +128,7 @@ export default function Profile() {
                                         </div>
                                     ) : (
                                         <div className="h-full relative flex items-center justify-center">
-                                            <img src="./boy.png" alt="Profile" className="w-52 rounded border object-cover" />
+                                            <img src="./boy.png" alt="Profile" className="w-52 rounded object-cover" />
                                         </div>
                                     )}
 
@@ -190,7 +191,7 @@ export default function Profile() {
                                     </li>
                                 </Link>
 
-                                <Link to='/profile/setting' className={`!no-underline text-black text-sm ${userInfo.profileType === 'Admin' ? '' : '!hidden'}`}>
+                                {/* <Link to='/profile/setting' className={`!no-underline text-black text-sm ${userInfo.profileType === 'Admin' ? '' : '!hidden'}`}>
                                     <li
                                         className={`h-10 flex items-center poppins-semibold !cursor-pointer 
                                         hover:border-l-[2px] hover:bg-zinc-200 border-black 
@@ -203,7 +204,7 @@ export default function Profile() {
                                         </svg>
                                         Settings
                                     </li>
-                                </Link>
+                                </Link> */}
 
                             </ul>
 
@@ -251,6 +252,9 @@ export default function Profile() {
                         } />
                         <Route path='setting' element={
                             <Settings />
+                        } />
+                        <Route path='bookinghistory' element={
+                            <BookingHistory />
                         } />
                     </Route>
                 </Routes>

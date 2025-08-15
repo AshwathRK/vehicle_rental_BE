@@ -476,7 +476,7 @@ export default function UserDetails() {
                                 </div>
                             </div>
                             <p className='poppins-semibold text-[15px]'>Check your Previous
-                                <Link to = {'/bookinghistory'}>
+                                <Link to = {'/profile/bookinghistory'}>
                                     <span className='px-1 text-blue-500 cursor-pointer' href="">Booking History</span>
                                 </Link>
 

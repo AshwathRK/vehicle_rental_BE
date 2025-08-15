@@ -62,11 +62,11 @@ export default function App() {
                 <Route element={<PrivateRoute />}>
                     <Route path="/profile/*" element={<Profile />}
                     />
-                    <Route path="/bookinghistory" element={
+                    {/* <Route path="/bookinghistory" element={
                         <>
                             <BookingHistory />
                         </>
-                    } />
+                    } /> */}
                     <Route path="/bookingpage/:id" element={<BookingPage />}
                     />
                 </Route>

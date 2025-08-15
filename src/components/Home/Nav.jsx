@@ -87,7 +87,7 @@ export default function Navbar() {
             <div className='flex items-center justify-end z-50'>
                 {/* Desktop buttons */}
                 <div className='hidden md:flex items-center'>
-                    {!isSearchPage && !isVehicles && (
+                    {/* {!isSearchPage && !isVehicles && (
 
                         <Link to='/search' className="!no-underline ml-2">
                             <button className='w-24 md:w-32 h-10 bg-green-200 rounded text-white bg-mid poppins-semibold mr-2 flex items-center justify-center'>
@@ -95,7 +95,7 @@ export default function Navbar() {
                                 Search
                             </button>
                         </Link>
-                    )}
+                    )} */}
                     {!showLoginPage && (
                         <Link to='/login' className="!no-underline ml-2">
                             <button className='w-24 md:w-32 h-10 bg-green-200 rounded text-white bg-primery poppins-semibold flex justify-center items-center'>
@@ -204,12 +204,12 @@ export default function Navbar() {
 
             {searchOpen && (
                 <div className='md:hidden flex items-center z-50 absolute top-20 left-0 w-full bg-white p-4'>
-                    <Link to='/search' className="!no-underline ml-2">
+                    {/* <Link to='/search' className="!no-underline ml-2">
                         <button className='w-28 h-10 mx-3 bg-green-200 rounded text-white bg-mid poppins-semibold flex items-center justify-center'>
                             <img src="/Search.png" className='w-4 h-4 mx-2 invert' />
                             Search
                         </button>
-                    </Link>
+                    </Link> */}
                 </div>
             )}
         </div>
