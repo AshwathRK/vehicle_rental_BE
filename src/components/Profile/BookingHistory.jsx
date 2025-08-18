@@ -1,16 +1,30 @@
 import axios from 'axios';
-import React from 'react'
+import React, { use } from 'react'
 import { useEffect } from 'react'
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TablePagination from '@mui/material/TablePagination';
+import TableRow from '@mui/material/TableRow';
+import { Button } from '@mui/joy';
+import { useNavigate } from 'react-router-dom';
+import { ClimbingBoxLoader } from 'react-spinners';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 export default function BookingHistory() {
-
     const accessToken = sessionStorage.getItem('accessToken');
     const deviceId = sessionStorage.getItem('deviceId');
+    const [bookingHistory, setBookingHistory] = React.useState([]);
+    const navigator = useNavigate();
+    const [loadder, setLoader] = React.useState(false);
+
     useEffect(() => {
-        debugger
+        setLoader(true);
         const fetchPaymentInformation = async () => {
             try {
                 // 1️⃣ Get user details
@@ -26,26 +40,135 @@ export default function BookingHistory() {
                 // 2️⃣ Get bookings for the user
                 const { data: bookings } = await axios.get(`${serverUrl}/booking/user/${userId}`);
 
-                if (!bookings || bookings.length === 0) {
+                if (!bookings?.data || bookings?.data.length === 0) {
                     console.warn("No bookings found for user");
                     return;
                 }
 
-                // 3️⃣ Pick the first booking (or whichever logic you need)
-                const bookingId = bookings[0]._id;
+                // 3️⃣ For each booking, fetch its payment info
+                const bookingsWithPayments = await Promise.all(
+                    bookings.data.map(async (booking) => {
+                        try {
+                            const { data: paymentInfo } = await axios.get(
+                                `${serverUrl}/payment/${booking.paymentId}`
+                            );
+                            return { ...booking, paymentDetails: paymentInfo };
+                        } catch (err) {
+                            console.error(`Error fetching payment for booking ${booking._id}`, err);
+                            return { ...booking, paymentDetails: null };
+                        }
+                    })
+                );
 
-                // 4️⃣ Get payment information for that booking
-                const { data: paymentInfo } = await axios.get(`${serverUrl}/payment/${bookingId}`);
+                // 4️⃣ Save in state
+                setBookingHistory(bookingsWithPayments);
 
-                console.log("Payment Information:", paymentInfo);
+                console.log("Bookings with Payments:", bookingsWithPayments);
+
             } catch (error) {
                 console.error("Error fetching payment information:", error);
+            }
+            finally {
+                setLoader(false);
             }
         };
 
         fetchPaymentInformation();
     }, []);
 
+    const columns = [
+        { id: 'payid', label: 'Payment Number', minWidth: 170 },
+        { id: 'startdate', label: 'Start Date', minWidth: 100 },
+        {
+            id: 'enddate',
+            label: 'End Date',
+            minWidth: 170,
+            align: 'right',
+            format: (value) => value.toLocaleString('en-US'),
+        },
+        {
+            id: 'amount',
+            label: 'Amount (₹)',
+            minWidth: 170,
+            align: 'right',
+            format: (value) => value.toLocaleString('en-US'),
+        },
+        {
+            id: 'activity',
+            label: 'Activity',
+            minWidth: 170,
+            align: 'right',
+            format: (value) => value.toFixed(2),
+        },
+    ];
+
+    function createData(payid, startdate, enddate, amount, activityElement) {
+        return { payid, startdate, enddate, amount, activity: activityElement };
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const pad = n => n < 10 ? '0' + n : n;
+        return [
+            pad(date.getDate()),
+            pad(date.getMonth() + 1),
+            date.getFullYear()
+        ].join('-') + ' ' +
+            pad(date.getHours()) + ':' +
+            pad(date.getMinutes());
+    }
+
+    const moreDetails = (id) => {
+        navigator(`/profile/detailedbookinghistory/${id}`);
+    }
+
+    const rows = bookingHistory.map((booking) =>
+        createData(
+            booking?.paymentDetails?.id,
+            formatDate(booking?.startDateTime),
+            formatDate(booking?.endDateTime),
+            booking?.paymentDetails?.amount / 100,
+            <div onClick={() => moreDetails(booking?._id)}>
+                <Button variant="text">
+                    More Details
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="1.5"
+                        stroke="currentColor"
+                        className="size-4 mx-1"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                        />
+                    </svg>
+                </Button>
+            </div>
+        )
+    );
+
+
+
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(+event.target.value);
+        setPage(0);
+    };
+
+    if (loadder) {
+        <div className='w-full h-full flex items-center justify-center'>
+            <ClimbingBoxLoader />
+        </div>
+    }
 
     return (
         <div className='w-full h-full flex items-center justify-center'>
@@ -61,11 +184,59 @@ export default function BookingHistory() {
                         <h6 className='m-0 poppins-semibold'>Booking History</h6>
                     </div>
                 </header>
-                <div className='h-[90%] flex '>
-
-                    <div className='w-2/3 h-full'></div>
+                <div className='h-[90%] flex flex-col'>
+                    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                        <TableContainer sx={{ maxHeight: 600 }}>
+                            <Table stickyHeader aria-label="sticky table">
+                                <TableHead>
+                                    <TableRow>
+                                        {columns.map((column) => (
+                                            <TableCell
+                                                key={column.id}
+                                                align={column.align}
+                                                style={{ minWidth: column.minWidth }}
+                                            >
+                                                {column.label}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {rows
+                                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                        .map((row) => {
+                                            return (
+                                                <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                                                    {columns.map((column) => {
+                                                        const value = row[column.id];
+                                                        return (
+                                                            <TableCell key={column.id} align={column.align}>
+                                                                {column.format && typeof value === 'number'
+                                                                    ? column.format(value)
+                                                                    : value}
+                                                            </TableCell>
+                                                        );
+                                                    })}
+                                                </TableRow>
+                                            );
+                                        })
+                                    }
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <TablePagination
+                            rowsPerPageOptions={[10, 25, 100]}
+                            component="div"
+                            count={rows.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
+                        />
+                    </Paper>
                 </div>
             </div>
         </div>
     )
 }
+

@@ -9,6 +9,7 @@ import axios from 'axios';
 import { ClimbingBoxLoader } from 'react-spinners';
 import CarInfo from './Profile/CarInfo';
 import BookingHistory from './Profile/BookingHistory';
+import DetailedBooking from './Profile/DetailedBooking';
 
 
 // === Load server URL from environment ===
@@ -255,6 +256,9 @@ export default function Profile() {
                         } />
                         <Route path='bookinghistory' element={
                             <BookingHistory />
+                        } />
+                        <Route path='detailedbookinghistory/:id' element={
+                            <DetailedBooking />
                         } />
                     </Route>
                 </Routes>

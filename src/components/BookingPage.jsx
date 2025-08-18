@@ -66,9 +66,10 @@ export default function BookingPage() {
 
     const [disabledRanges, setDisabledRanges] = React.useState([]);
     const [userInfo, setUserInfo] = useState({});
-
+    const navigate = useNavigate();
     const accessToken = sessionStorage.getItem('accessToken');
     const deviceId = sessionStorage.getItem('deviceId');
+    const [bookingConfirmation, setBookingConfirmation] = useState({});
 
     useEffect(() => {
         const verifyUserAuthentication = async () => {
@@ -216,8 +217,6 @@ export default function BookingPage() {
         getVehicleData()
     }, [])
 
-    console.log('Vehicle Info:', vehicleInfo);
-
     const [formData, setFormData] = useState({
         name: '',
         AddressLine1: '',
@@ -275,7 +274,6 @@ export default function BookingPage() {
             setFinalPrice((totalPrice - (totalPrice * discount / 100)).toFixed(2));
             return (totalPrice - (totalPrice * discount / 100)).toFixed(2);
         }
-
         calculateBookingTotal();
     }, [duration, vehicleInfo]);
 
@@ -334,7 +332,7 @@ export default function BookingPage() {
                                     status: 'Confirmed',
                                     paymentId: response.razorpay_payment_id,
                                 }, { withCredentials: true });
-                                console.log('Booking updated:', bookingResponse.data);
+                                setBookingConfirmation(bookingResponse.data)
                             } catch (error) {
                                 console.error('Error updating booking status:', error);
                             }
@@ -356,9 +354,6 @@ export default function BookingPage() {
                 const rzp = new window.Razorpay(options);
                 rzp.open();
             }
-
-
-
         } catch (err) {
             console.error(err);
             alert('Payment initiation failed');
@@ -367,7 +362,6 @@ export default function BookingPage() {
         }
 
     };
-
 
     return (
         <div className="h-[calc(99.8vh-78.4px)] flex relative top-[78px]">
@@ -865,11 +859,8 @@ export default function BookingPage() {
                                 sx={{ maxWidth: 500, borderRadius: 'md', p: 3, boxShadow: 'lg' }}
                             >
                                 <ModalClose onClick={() => {
-                                    setStepper((prev) => ({
-                                        ...prev,
-                                        activeStep: prev.activeStep + 1,
-                                    }));
-                                    setTabValue('4');
+                                    setOpen(false);
+                                    navigate(`/profile/detailedbookinghistory/${bookingConfirmation?.data?._id}`);
                                 }} variant="plain" sx={{ m: 1 }} />
                                 <Typography
                                     component="h2"
