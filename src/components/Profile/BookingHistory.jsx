@@ -128,7 +128,7 @@ export default function BookingHistory() {
             formatDate(booking?.startDateTime),
             formatDate(booking?.endDateTime),
             booking?.paymentDetails?.amount / 100,
-            <div onClick={() => moreDetails(booking?._id)}>
+            <div className='hover:text-blue-400' onClick={() => moreDetails(booking?._id)}>
                 <Button variant="text">
                     More Details
                     <svg
@@ -165,9 +165,11 @@ export default function BookingHistory() {
     };
 
     if (loadder) {
-        <div className='w-full h-full flex items-center justify-center'>
-            <ClimbingBoxLoader />
-        </div>
+        return (
+            <div className='w-full h-full flex items-center justify-center'>
+                <ClimbingBoxLoader />
+            </div>
+        )
     }
 
     return (
