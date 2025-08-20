@@ -62,7 +62,7 @@ Admin Credentials
 ________________________________________
 💳 Payment Information (Test Mode)
 Test card details for Razorpay:
-👉 Razorpay Test Cards Documentation
+👉 Razorpay Test Cards Documentation - https://razorpay.com/docs/payments/payments/test-card-details/
 ⚠️ Note: The system is currently configured in test mode using Razorpay sandbox credentials.
 📝 License
 This project is licensed under the MIT License.
