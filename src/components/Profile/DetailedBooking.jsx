@@ -220,7 +220,7 @@ export default function DetailedBooking() {
                                 />
                             </div>
                             <div>
-                                <Button>Modify Booking</Button>
+                                {/* <Button>Modify Booking</Button> */}
                             </div>
                         </div>
                     </div>

@@ -474,13 +474,13 @@ export default function UserDetails() {
                                         onChange={handleInputChange}
                                         disabled={!isEditing} id='website' className={`w-full h-9 border rounded px-3 poppins-medium !text-[13px] ${!isEditing ? 'bg-zinc-100' : ''}`} autocomplete="off" />
                                 </div>
+                                <p className='poppins-semibold text-[15px] pt-4'>Check your Previous
+                                    <Link to={'/profile/bookinghistory'}>
+                                        <span className='px-1 text-blue-500 cursor-pointer' href="">Booking History</span>
+                                    </Link>
+                                </p>
                             </div>
-                            <p className='poppins-semibold text-[15px]'>Check your Previous
-                                <Link to = {'/profile/bookinghistory'}>
-                                    <span className='px-1 text-blue-500 cursor-pointer' href="">Booking History</span>
-                                </Link>
 
-                            </p>
                         </div>
                     </div>
                 </div>

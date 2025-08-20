@@ -6,8 +6,9 @@ import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ClimbingBoxLoader } from 'react-spinners';
+import { toast, ToastContainer } from 'react-toastify';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
@@ -20,6 +21,7 @@ export default function CarRiview() {
     const [loadding, setLoadding] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [vehicelCategory, setVehicelCategory] = useState('')
+    const navigator = useNavigate()
 
     const handleChange = (event, newValue) => {
         setValue(newValue);
@@ -62,9 +64,27 @@ export default function CarRiview() {
         setCurrentIndex((prevIndex) => (prevIndex === vehicleInfo.images.length - 1 ? 0 : prevIndex + 1));
     };
 
-    const handleApprove = () => {
-        
+    const handleApprove = async () => {
+        try {
+            const approveVehicle = await axios.put(
+                `${serverUrl}/vehicle/${id}`,
+                {
+                    vehicleInfo: JSON.stringify({
+                        isAdminApproved: true
+                    })
+                },
+                { withCredentials: true }
+            );
+            toast('The Vehicle has been approved')
+            setTimeout(() => {
+                navigator('/profile/carinfo')
+            }, "3500");
+        } catch (error) {
+            console.error("Approval failed:", error);
+            toast('Something went wrong the vehicle not approved!')
+        }
     };
+
 
     // ✅ Combine loader & data check here
     if (loadding || !vehicleInfo || !vehicleInfo.images || !vehicelCategory) {
@@ -129,11 +149,11 @@ export default function CarRiview() {
                 </div>
                 <div className='h-[200px] w-full flex flex-col'>
                     <Button disabled={vehicleInfo.isAdminApproved} onClick={handleApprove} className='w-full my-2' variant="contained" color="success">Approve</Button>
-                    {
-                        vehicleInfo.isAdminApproved?
-                        <Button className='w-full my-2' variant="outlined" color="danger">Disable</Button>:
-                        <Button className='w-full my-2' variant="outlined" color="danger">Delete</Button>
-                    }
+                    {/* {
+                        vehicleInfo.isAdminApproved ?
+                            <Button className='w-full my-2' variant="outlined" color="danger">Disable</Button> :
+                            <Button className='w-full my-2' variant="outlined" color="danger">Delete</Button>
+                    } */}
                 </div>
             </div>
             <div className='w-8/12'>
@@ -143,8 +163,8 @@ export default function CarRiview() {
                             <TabList onChange={handleChange} aria-label="lab API tabs example">
                                 <Tab label="Information" value="1" />
                                 {
-                                    vehicleInfo.isAdminApproved?
-                                    <Tab label="History" value="2" />: ''
+                                    vehicleInfo.isAdminApproved ?
+                                        <Tab label="History" value="2" /> : ''
                                 }
                             </TabList>
                         </Box>
@@ -288,6 +308,7 @@ export default function CarRiview() {
                     </TabContext>
                 </Box>
             </div>
+            <ToastContainer />
         </div>
     )
 }
