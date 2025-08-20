@@ -27,33 +27,33 @@ ________________________________________
 
 📸 Screenshots
 1.	Landing Page
- ![alt text](image.png)
+ ![alt text](<public/ReadMe images/image.png>)
 2.	Login Page
- ![alt text](image-1.png)
+ ![alt text](<public/ReadMe images/image-1.png>)
 3.	Vehicle Display Page
- ![alt text](image-2.png)
+ ![alt text](<public/ReadMe images/image-2.png>)
 4.	Car Details Page
- ![alt text](image-3.png)
+ ![alt text](<public/ReadMe images/image-3.png>)
 5.	Booking Page
- ![alt text](image-4.png)
+ ![alt text](<public/ReadMe images/image-4.png>)
 6.	Payment Page
- ![alt text](image-5.png)
+ ![alt text](<public/ReadMe images/image-5.png>)
 7.	Booking Details
- ![alt text](image-6.png)
+ ![alt text](<public/ReadMe images/image-6.png>)
 8.	Profile Page
- ![alt text](image-7.png)
+ ![alt text](<public/ReadMe images/image-7.png>)
 9.	Affiliate Page (Admin View)
- ![alt text](image-8.png)
+ ![alt text](<public/ReadMe images/image-8.png>)
 10.	Affiliate Page (Affiliate View)
- ![alt text](image-9.png)
+ ![alt text](<public/ReadMe images/image-9.png>)
 11.	Affiliate Page (User View)
- ![alt text](image-10.png)
+ ![alt text](<public/ReadMe images/image-10.png>)
 12.	Car Information Page (Admin View)
- ![alt text](image-11.png)
+ ![alt text](<public/ReadMe images/image-11.png>)
 13.	Car Information Page (Affiliate View)
- ![alt text](image-12.png)
+ ![alt text](<public/ReadMe images/image-12.png>)
 14.	Payment Confirmation Email
- ![alt text](image-13.png)
+ ![alt text](<public/ReadMe images/image-13.png>)
  ________________________________________
 🔑 Credentials
 Admin Credentials
