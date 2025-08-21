@@ -278,7 +278,6 @@ export default function BookingPage() {
     }, [duration, vehicleInfo]);
 
     const handlePayment = async () => {
-        debugger
         try {
             setLoading(true);
 

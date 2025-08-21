@@ -7,15 +7,17 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 // === Load server URL from environment ===
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 export default function Information() {
-
+    
     const [expanded, setExpanded] = useState(false);
     const [affiliate, setAffiliate] = useState([])
     const [vehicleInfo, setVehicleInfo] = useState({});
+    const navigator = useNavigate()
 
     const handleChange = (panel, userId) => async (event, isExpanded) => {
         setExpanded(isExpanded ? panel : false);
@@ -96,12 +98,13 @@ export default function Information() {
                                                     <h6 className='m-0'>{vehicle.licensePlate}</h6>
                                                     <h6 className='m-0'>{`${vehicle.make} ${vehicle.model}`}</h6>
                                                     <Stack spacing={2} direction="row">
-                                                        <Button variant="text" size="small">More Info</Button>
+                                                        <Button onClick={()=>{
+                                                            navigator(`/profile/carinfo/carriview/${vehicle?._id}`)
+                                                        }} variant="text" size="small">More Info</Button>
                                                     </Stack>
                                                 </div>
                                             ))
                                         }
-
                                     </Typography>
                                 </AccordionDetails>
                             </Accordion>

@@ -204,7 +204,6 @@ export default function AddCars() {
 
     // Command: Assign the value form the setValueInfo
     useEffect(() => {
-        // debugger
         const formatDate = (isoDate) => {
             const date = new Date(isoDate);
             const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
@@ -252,7 +251,6 @@ export default function AddCars() {
     }, [editVehicle])
 
     const handleEditedValues = async () => {
-        debugger
         if (!validateForm()) return;
 
         // if (!fileToUpload.length) {

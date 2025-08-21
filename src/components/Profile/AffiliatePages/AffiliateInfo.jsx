@@ -63,7 +63,6 @@ export default function AffiliateInfo() {
     }, []);
 
     const handleOnClickEdit = () => {
-        debugger
         setIsEditing(true);
 
     };
@@ -80,7 +79,6 @@ export default function AffiliateInfo() {
     };
 
     const handleSubmit = async () => {
-        debugger
         if (validateForm()) {
             try {
                 const id = userInfo._id

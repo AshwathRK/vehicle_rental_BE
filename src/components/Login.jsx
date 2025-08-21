@@ -21,7 +21,6 @@ export default function LogIn() {
     };
 
     const handleSubmit = async (event) => {
-        // debugger
         setLoadding(true)
         event.preventDefault();
         try {

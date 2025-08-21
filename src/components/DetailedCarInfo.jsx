@@ -48,7 +48,6 @@ export default function DetailedCarInfo() {
 
     useEffect(() => {
         const getCategoryById = async () => {
-            // debugger
             setLoadder(true)
             if (!vehicleInfo?.category) return;
             try {
@@ -174,7 +173,6 @@ export default function DetailedCarInfo() {
     // console.log(similarcars)
 
     const weeklyDiscount = () => {
-        // debugger
         const day = vehicleInfo?.pricePerDay
         if (vehicleInfo?.discounts.weekly) {
             const weekly = day - (day * (vehicleInfo?.discounts.weekly / 100))
